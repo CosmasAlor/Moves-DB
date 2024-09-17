@@ -3,6 +3,7 @@
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 const navigation = [
   { name: 'Movies', path: '/' },
@@ -11,8 +12,9 @@ const navigation = [
   { name: 'More', path: '/' },
 ]
 
-export default function Example() {
+export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
 
   function handleNavigation(path: string) {
     router.push(path);
@@ -48,9 +50,9 @@ export default function Example() {
                   <button
                     key={item.name}
                     onClick={() => handleNavigation(item.path)}
-                    aria-current={router.pathname === item.path ? 'page' : undefined}
+                    aria-current={pathname === item.path ? 'page' : undefined}
                     className={classNames(
-                      router.pathname === item.path ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                      pathname === item.path ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                       'rounded-md px-3 py-2 text-sm font-medium',
                     )}
                   >

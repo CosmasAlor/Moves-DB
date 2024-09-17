@@ -54,7 +54,7 @@ const Person: React.FC = () => {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Popular People</h1>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-5 ">
         {people.map((person) => (
           <Link href={`/personalDetails/${person.id}`} key={person.id}>
             <div className="bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">

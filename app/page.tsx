@@ -86,11 +86,11 @@ export default function Home() {
       </div>
     </section> */}
 
-    <section>
+    <section  className="my-12 mx-4">
       <Trending />
     </section>
 
-<section>
+<section className="my-12 mx-4">
   <Soonall />
 </section>
 
