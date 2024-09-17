@@ -6,6 +6,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css'; // Import Slick Carousel CSS
 import 'slick-carousel/slick/slick-theme.css'; // Import Slick Carousel theme CSS
 import Loading from '@/app/loading';
+import Link from 'next/link';
 
 interface RootState {
   moviesReducer: {
@@ -33,7 +34,7 @@ function Trending() {
     dots: false,
     infinite: true,
     speed: 1000,
-    slidesToShow: 8,
+    slidesToShow: 7,
     slidesToScroll: 1,
     autoplaySpeed: 2000,
     arrows: false,
@@ -44,7 +45,7 @@ function Trending() {
   };
 
   return (
-    <div className='bg-gray-500'>
+    <div className=''>
       <div className="time flex justify-between items-center p-4">
         <h2 className="text-xl font-bold">Trending {timeWindow === 'day' ? 'Today' : 'This Week'}</h2>
         <button 
@@ -56,10 +57,14 @@ function Trending() {
       </div> 
       <Slider {...settings}>
         {Movie.map((movie) => (
+          <Link href={`/movie/${movie.id}`}>
           <div key={movie.id} className='p-2'>
             <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={movie.title} className='rounded' />
-            <h3>{movie.title}</h3>
+            <h3 className='mb-2 text-1xl text-center font-bold tracking-tight text-gray-900 dark:text-white'>{movie.title}</h3>
+          
+            Release <span className='px-3 m-0 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{movie.release_date}</span>
           </div>
+        </Link>
         ))}
       </Slider>
     </div>

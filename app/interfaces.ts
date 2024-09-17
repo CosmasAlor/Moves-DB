@@ -1,4 +1,4 @@
-interface Movie {
+export interface Movie {
     backdrop_path: string;
     id: number;
     title: string;
@@ -16,9 +16,24 @@ interface Movie {
     vote_count: number;
 }
 
-interface MovieResponse {
+export interface MovieResponse {
     page: number;
     results: Movie[];
     total_pages: number;
     total_results: number;
+}
+
+// import { Movie } from "../app/interfaces";
+
+export interface MovieState {
+  movies: Movie[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface UpcomingState {
+  upcoming: MovieState;
+  topRated: MovieState;
+  nowPlaying: MovieState;
+  popular: MovieState;
 }
