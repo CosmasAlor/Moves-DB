@@ -1,20 +1,19 @@
-'use client'
+'use client';
 
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { useRouter } from 'next/navigation';
-import { usePathname } from 'next/navigation';
+import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useRouter, usePathname } from 'next/navigation';
 
 const navigation = [
   { name: 'Movies', path: '/' },
   { name: 'TV Shows', path: '/tv' },
   { name: 'People', path: '/person' },
   { name: 'More', path: '/' },
-]
+];
 
 export default function Navbar() {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname(); // Get the current pathname
 
   function handleNavigation(path: string) {
     router.push(path);
@@ -50,7 +49,7 @@ export default function Navbar() {
                   <button
                     key={item.name}
                     onClick={() => handleNavigation(item.path)}
-                    aria-current={pathname === item.path ? 'page' : undefined}
+                    aria-current={pathname === item.path ? 'page' : undefined} // Use pathname instead of router.pathname
                     className={classNames(
                       pathname === item.path ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                       'rounded-md px-3 py-2 text-sm font-medium',
@@ -120,9 +119,9 @@ export default function Navbar() {
             <DisclosureButton
               key={item.name}
               onClick={() => handleNavigation(item.path)}
-              aria-current={router.pathname === item.path ? 'page' : undefined}
+              aria-current={pathname === item.path ? 'page' : undefined} // Use pathname instead of router.pathname
               className={classNames(
-                router.pathname === item.path ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                pathname === item.path ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                 'block rounded-md px-3 py-2 text-base font-medium',
               )}
             >
