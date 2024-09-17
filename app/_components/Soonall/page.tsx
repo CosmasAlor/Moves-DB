@@ -16,19 +16,19 @@ const Soonall: React.FC = () => {
  
             
       <div className="mb-4 border-b border-gray-200 dark:border-gray-700">
-        <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+        <ul className="flex -mb-px text-[10px] sm:text-xs font-medium text-center" role="tablist">
           {['upcoming', 'trending', 'nowPlaying', 'topRated'].map((tab) => (
-            <li key={tab} className="me-2" role="presentation">
+            <li key={tab} className="flex-1" role="presentation">
               <button
-                className={`inline-block p-4 rounded-t-lg transition-all duration-300 ease-in-out ${activeTab === tab ? 'text-white bg-cyan-950 border-b-2 border-purple-600 shadow-lg' : 'text-gray-500 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'} focus:outline-none focus:ring-2 focus:ring-purple-300`}
+                className={`w-full inline-block py-2 px-1 sm:p-3 rounded-t-lg transition-all duration-300 ease-in-out ${activeTab === tab ? 'text-white bg-cyan-950 border-b-2 border-purple-600 shadow-lg' : 'text-gray-500 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'} focus:outline-none focus:ring-2 focus:ring-purple-300`}
                 onClick={() => setActiveTab(tab)}
                 role="tab"
                 aria-selected={activeTab === tab}
               >
-                {tab === 'upcoming' && '🔜 Upcoming'}
-                {tab === 'trending' && '🔥 Top Rated'}
-                {tab === 'nowPlaying' && '🎬 Now Playing'}
-                {tab === 'topRated' && '⭐ Popular'}
+                {tab === 'upcoming' && '🔜 Up'}
+                {tab === 'trending' && '🔥 Top'}
+                {tab === 'nowPlaying' && '🎬 Now'}
+                {tab === 'topRated' && '⭐ Pop'}
               </button>
             </li>
           ))}
