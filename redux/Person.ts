@@ -6,6 +6,7 @@ interface Person {
   name: string;
   profile_path: string;
   popularity: number;
+  known_for_department?: string;
 }
 
 interface PersonState {

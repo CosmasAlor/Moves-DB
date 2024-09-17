@@ -37,3 +37,10 @@ export interface UpcomingState {
   nowPlaying: MovieState;
   popular: MovieState;
 }
+
+
+export interface Person {
+  name: string;
+  known_for_department?: string; // Add this if it's missing
+  // other fields...
+}
