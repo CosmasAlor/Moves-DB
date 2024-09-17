@@ -8,7 +8,7 @@ const navigation = [
   { name: 'Movies', path: '/' },
   { name: 'TV Shows', path: '/tv' },
   { name: 'People', path: '/person' },
-  { name: 'More', path: '/' },
+  { name: 'More', path: '/More' },
 ];
 
 export default function Navbar() {
