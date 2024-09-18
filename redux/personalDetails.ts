@@ -6,6 +6,7 @@ interface PersonalDetails {
   id: number;
   name: string;
   age: number;
+  also_known_as: [];
   biography: string;
   birthday: string;
   gender: number;
