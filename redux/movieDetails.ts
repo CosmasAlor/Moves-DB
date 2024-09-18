@@ -24,11 +24,27 @@ interface SimilarMovie {
   release_date: string;
 }
 
+interface MovieCredits {
+  cast: {
+    id: number;
+    name: string;
+    character: string;
+    profile_path: string | null;
+  }[];
+  crew: {
+    id: number;
+    name: string;
+    job: string;
+    department: string;
+  }[];
+}
+
 interface MovieDetailsState {
   data: MovieDetails | null;
   similarMovies: SimilarMovie[];
   loading: boolean;
   error: string | null;
+  credits: MovieCredits | null;
 }
 
 const initialState: MovieDetailsState = {
@@ -36,6 +52,7 @@ const initialState: MovieDetailsState = {
   similarMovies: [],
   loading: false,
   error: null,
+  credits: null,
 };
 
 // Create an async thunk for fetching movie details
@@ -73,6 +90,23 @@ export const fetchSimilarMovies = createAsyncThunk(
   }
 );
 
+// Add this new async thunk
+export const fetchMovieCredits = createAsyncThunk(
+  'movieDetails/fetchMovieCredits',
+  async (movieId: string) => {
+    const response = await axios.get(
+      `https://api.themoviedb.org/3/movie/${movieId}/credits?language=en-US`,
+      {
+        headers: {
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1MTAzMDVjYjkyZTk4N2NhNmU3Nzg3Mjg3Y2U1MmRkNyIsIm5iZiI6MTcyNjM1NzIwOS43NDE2MDksInN1YiI6IjY2NzFmZDZmYWJkZDgzY2I3NDM0MzljMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.X-0o_nolihUkCgVU8qorsGFNppuNlC0q9Sb-ieIcJW0',
+          accept: 'application/json',
+        },
+      }
+    );
+    return response.data;
+  }
+);
+
 const movieDetailsSlice = createSlice({
   name: 'movieDetails',
   initialState,
@@ -96,6 +130,12 @@ const movieDetailsSlice = createSlice({
       })
       .addCase(fetchSimilarMovies.rejected, (state, action) => {
         state.error = action.error.message || 'Failed to fetch similar movies';
+      })
+      .addCase(fetchMovieCredits.fulfilled, (state, action) => {
+        state.credits = action.payload;
+      })
+      .addCase(fetchMovieCredits.rejected, (state, action) => {
+        state.error = action.error.message || 'Failed to fetch movie credits';
       });
   },
 });

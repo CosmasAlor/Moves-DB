@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'next/navigation';
-import { fetchMovieDetails, fetchSimilarMovies } from '@/redux/movieDetails';
+import { useParams, useRouter } from 'next/navigation';
+import { fetchMovieDetails, fetchSimilarMovies, fetchMovieCredits } from '@/redux/movieDetails';
 import { AppDispatch, RootState } from '@/redux/store';
 import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css'; // Import Slick Carousel CSS
-import 'slick-carousel/slick/slick-theme.css'; // Import Slick Carousel theme CSS
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 import Link from 'next/link';
 import Loading from '@/app/loading';
+import { FaCalendarAlt, FaStar, FaFilm } from 'react-icons/fa';
+import Trending from '@/app/_components/trending/page';
 
 interface Movie {
   id: number;
@@ -30,38 +32,55 @@ interface SimilarMovie {
   release_date: string;
 }
 
+interface Credit {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
+}
+
 const MovieDetails: React.FC = () => {
   const { id: movieId } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   
-  const { data: movie, similarMovies, loading, error } = useSelector((state: RootState) => state.movieDetailsSlice as { data: Movie | null, similarMovies: SimilarMovie[], loading: boolean, error: string | null });
+  const { data: movie, similarMovies, credits, loading, error } = useSelector((state: RootState) => state.movieDetailsSlice as { 
+    data: Movie | null, 
+    similarMovies: SimilarMovie[], 
+    credits: { cast: Credit[] },
+    loading: boolean, 
+    error: string | null 
+  });
+
+  const [showFullOverview, setShowFullOverview] = useState(false);
 
   useEffect(() => {
     if (movieId) {
-      dispatch(fetchMovieDetails(movieId));
-      dispatch(fetchSimilarMovies(movieId));
+      Promise.all([
+        dispatch(fetchMovieDetails(movieId)),
+        dispatch(fetchSimilarMovies(movieId)),
+        dispatch(fetchMovieCredits(movieId))
+      ]).then(() => {
+        setIsDataLoaded(true);
+      });
     }
   }, [dispatch, movieId]);
 
-  if (loading) return <div><Loading/></div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!movie) return <div>No movie details available.</div>;
-
-
-  const settings = {
+  const sliderSettings = useMemo(() => ({
     dots: false,
     infinite: true,
     speed: 1000,
-    slidesToShow: 6, // Changed from 8 to 4 to match the number of movies displayed
+    slidesToShow: 4,
     slidesToScroll: 1,
     autoplaySpeed: 2000,
     arrows: false,
     autoplay: true,
-    responsive: [ // Added responsive settings for different screen sizes
+    responsive: [
       {
         breakpoint: 1024,
         settings: {
-          slidesToShow: 6,
+          slidesToShow: 4,
         }
       },
       {
@@ -77,96 +96,158 @@ const MovieDetails: React.FC = () => {
         }
       }
     ]
+  }), []);
+
+  if (loading || !isDataLoaded) return <Loading />;
+  if (error) return <div className="text-center text-red-500">Error: {error}</div>;
+  if (!movie) {
+    router.push('/404');
+    return null;
+  }
+
+  const truncateOverview = (overview: string, wordLimit: number) => {
+    const words = overview.split(' ');
+    if (words.length <= wordLimit) return overview;
+    return words.slice(0, wordLimit).join(' ') + '...';
   };
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 min-h-screen">
-      <section className="py-12 md:py-20 relative">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
-          style={{backgroundImage: `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`}}
-        ></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <>
+      <section className="py-12 bg-gray-100 dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:flex lg:items-start lg:space-x-8">
-            <div className="flex-shrink-0 mb-8 lg:mb-0">
-              <img 
-                className="w-full max-w-sm mx-auto rounded-lg shadow-lg" 
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title} 
-              />
-            </div>
-            
-            <div className="flex-grow">
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                {movie.title}
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300 mb-4">{movie.tagline}</p>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {movie.genres && movie.genres.map((genre) => (
-                  <span key={genre.id} className="px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-sm font-medium">
-                    {genre.name}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center space-x-4 mb-6">
-                <span className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm font-medium text-gray-800 dark:text-gray-200">
-                  {movie.release_date}
-                </span>
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  <p className="ml-1 text-sm font-medium text-gray-600 dark:text-gray-300">
-                    {movie.vote_average.toFixed(1)}
-                  </p>
+            {/* Left column: Poster and Movie Info */}
+            <div className="lg:w-1/3 mb-8 lg:mb-0">
+              <div className="bg-white dark:bg-gray-700 rounded-lg shadow-lg overflow-hidden">
+                <img 
+                  className="w-full h-auto object-cover"
+                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title} 
+                />
+                <div className="p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Movie Info</h2>
+                  <ul className="space-y-3 text-gray-600 dark:text-gray-300">
+                    <li className="flex items-center">
+                      <FaCalendarAlt className="mr-2" />
+                      <span><strong>Release Date:</strong> {movie.release_date}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <FaStar className="mr-2" />
+                      <span><strong>Rating:</strong> {movie.vote_average.toFixed(1)}/10</span>
+                    </li>
+                    <li className="flex items-center">
+                      <FaFilm className="mr-2" />
+                      <span><strong>Genres:</strong> {movie.genres.map(g => g.name).join(', ')}</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
+            </div>
 
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">Overview</h2>
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
-                {movie.overview}
-              </p>
+            {/* Right column: Overview and Cast */}
+            <div className="lg:w-2/3">
+              <div className="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6 mb-8">
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                  {movie.title}
+                </h1>
+                <p className="text-xl text-gray-600 dark:text-gray-400">{movie.tagline}</p>
 
+                <hr className="my-6 border-gray-200 dark:border-gray-600" />
 
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Overview</h2>
+                <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
+                  {showFullOverview ? movie.overview : truncateOverview(movie.overview, 50)}
+                  {movie.overview.split(' ').length > 50 && (
+                    <button
+                      onClick={() => setShowFullOverview(!showFullOverview)}
+                      className="ml-2 text-blue-600 hover:underline dark:text-blue-400 font-semibold"
+                    >
+                      {showFullOverview ? 'Read less' : 'Read more'}
+                    </button>
+                  )}
+                </p>
+              </div>
 
+              <div className="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-2">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Cast</h2>
+                {credits?.cast && credits.cast.length > 1 ? (
+                  <Slider {...sliderSettings}>
+                    {credits.cast.slice(0, 10).map((actor) => (
+                      <ActorCard key={actor.id} actor={actor} />
+                    ))}
+                  </Slider>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {credits?.cast.slice(0, 10).map((actor) => (
+                      <ActorCard key={actor.id} actor={actor} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </section>
-      
-      <section className="py-12 bg-white dark:bg-gray-900">
+
+      <section className="mt-12 bg-gray-50 dark:bg-gray-900 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold mb-8 text-gray-900 dark:text-white">Similar Movies</h2>
-          <Slider {...settings}>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Similar Movies</h2>
+          <Slider {...sliderSettings}>
             {similarMovies.map((similarMovie) => (
-              <Link href={`/movie/${similarMovie.id}`} key={similarMovie.id}>
-                <div className="px-2">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md transition-transform duration-300 hover:scale-105 h-full flex flex-col">
-                    <img 
-                      src={`https://image.tmdb.org/t/p/w500${similarMovie.poster_path}`}
-                      alt={similarMovie.title}
-                      className="w-full h-48 sm:h-56 md:h-64 object-cover"
-                    />
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                        
-                        {similarMovie.title.length > 13 ? `${similarMovie.title.slice(0, 13)}...` : similarMovie.title}  
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-auto">
-                        Released: <span className="font-medium">{similarMovie.release_date}</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+              <SimilarMovieCard key={similarMovie.id} movie={similarMovie} />
             ))}
           </Slider>
         </div>
       </section>
-    </div>
+
+      <section className="mt-12 bg-gray-100 dark:bg-gray-800 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Trending Now</h2>
+          <Trending />
+        </div>
+      </section>
+    </>
   );
 };
+
+const ActorCard: React.FC<{ actor: Credit }> = ({ actor }) => (
+  <Link href={`/personalDetails/${actor.id}`}>
+    <div className="px-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 transform">
+        <img 
+          src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : '/placeholder.png'}
+          alt={actor.name}
+          className="w-full h-48 object-cover"
+        />
+        <div className="p-4">
+          <h3 className="text-md font-semibold text-gray-900 dark:text-white truncate">{actor.name}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{actor.character}</p>
+        </div>
+      </div>
+    </div>
+  </Link>
+);
+
+const SimilarMovieCard: React.FC<{ movie: SimilarMovie }> = ({ movie }) => (
+  <Link href={`/movie/${movie.id}`}>
+    <div className="px-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md transition-transform duration-300 hover:scale-105 h-full flex flex-col">
+        <img 
+          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+          alt={movie.title}
+          className="w-full h-48 sm:h-56 md:h-64 object-cover"
+        />
+        <div className="p-4 flex flex-col flex-grow">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            {movie.title.length > 13 ? `${movie.title.slice(0, 13)}...` : movie.title}  
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-auto">
+            Released: <span className="font-medium">{movie.release_date}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </Link>
+);
 
 export default MovieDetails;
