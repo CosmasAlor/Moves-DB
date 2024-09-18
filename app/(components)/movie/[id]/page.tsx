@@ -11,11 +11,30 @@ import 'slick-carousel/slick/slick-theme.css'; // Import Slick Carousel theme CS
 import Link from 'next/link';
 import Loading from '@/app/loading';
 
+interface Movie {
+  id: number;
+  title: string;
+  tagline: string;
+  poster_path: string;
+  backdrop_path: string;
+  release_date: string;
+  vote_average: number;
+  overview: string;
+  genres: { id: number; name: string }[];
+}
+
+interface SimilarMovie {
+  id: number;
+  title: string;
+  poster_path: string;
+  release_date: string;
+}
+
 const MovieDetails: React.FC = () => {
   const { id: movieId } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
   
-  const { data: movie, similarMovies, loading, error } = useSelector((state: RootState) => state.movieDetailsSlice || { data: null, similarMovies: [], loading: false, error: null });
+  const { data: movie, similarMovies, loading, error } = useSelector((state: RootState) => state.movieDetailsSlice as { data: Movie | null, similarMovies: SimilarMovie[], loading: boolean, error: string | null });
 
   useEffect(() => {
     if (movieId) {

@@ -22,7 +22,10 @@ interface MovieCredit {
   title: string;
   character: string;
   release_date: string;
-  // Add other properties as needed
+  // Add other properties that might be present in the API response
+  poster_path: string | null;
+  vote_average: number;
+  // ... any other properties returned by the API
 }
 
 interface PersonalDetailsState {
@@ -61,33 +64,18 @@ export const fetchPersonalDetails = createAsyncThunk(
 // Create a new async thunk for fetching movie credits
 export const fetchMovieCredits = createAsyncThunk(
   'personalDetails/fetchMovieCredits',
-  async (personId: string, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(
-        `https://api.themoviedb.org/3/person/${personId}/movie_credits?language=en-US`,
-        {
-          headers: {
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1MTAzMDVjYjkyZTk4N2NhNmU3Nzg3Mjg3Y2U1MmRkNyIsIm5iZiI6MTcyNjM1NzIwOS43NDE2MDksInN1YiI6IjY2NzFmZDZmYWJkZDgzY2I3NDM0MzljMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.X-0o_nolihUkCgVU8qorsGFNppuNlC0q9Sb-ieIcJW0',
-            accept: 'application/json',
-          },
-        }
-      );
-      
-      console.log('API Response:', response.data);
-      
-      if (!response.data.cast) {
-        console.log('not working');
-        throw new Error('Cast data not found in the response');
-       
-        
+  async (personId: string) => {
+    const response = await axios.get(
+      `https://api.themoviedb.org/3/person/${personId}/movie_credits?language=en-US`,
+      {
+        headers: {
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1MTAzMDVjYjkyZTk4N2NhNmU3Nzg3Mjg3Y2U1MmRkNyIsIm5iZiI6MTcyNjM1NzIwOS43NDE2MDksInN1YiI6IjY2NzFmZDZmYWJkZDgzY2I3NDM0MzljMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.X-0o_nolihUkCgVU8qorsGFNppuNlC0q9Sb-ieIcJW0',
+          accept: 'application/json',
+        },
       }
-      
-      return response.data.cast;
-    } catch (error) {
-        console.log('not ddd working');
-      console.error('Error fetching movie credits:', error);
-      return rejectWithValue(error.response?.data || error.message);
-    }
+    );
+
+    return response.data.cast as MovieCredit[];
   }
 );
 
@@ -113,7 +101,7 @@ const personalDetailsSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchMovieCredits.fulfilled, (state, action) => {
+      .addCase(fetchMovieCredits.fulfilled, (state, action: PayloadAction<MovieCredit[]>) => {
         state.loading = false;
         state.movieCredits = action.payload;
       })
