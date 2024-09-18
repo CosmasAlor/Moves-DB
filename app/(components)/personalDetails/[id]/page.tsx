@@ -12,33 +12,14 @@ import Loading from '@/app/loading';
 import Link from 'next/link';
 import { FaBirthdayCake, FaMapMarkerAlt, FaVenusMars, FaUser, FaFilm, FaIdCard } from 'react-icons/fa';
 
-// Add these interfaces at the top of the file
-interface Person {
-  name: string;
-  profile_path: string;
-  known_for_department: string;
-  gender: number;
-  birthday: string;
-  place_of_birth: string;
-  also_known_as: string[];
-  biography: string;
-}
-
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string;
-  release_date: string;
-}
-
 const PersonalDetails: React.FC = () => {
   const { id: personId } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
   
-  const { data: person, loading, error } = useSelector((state: RootState) => state.personalDetailsSlice as { data: Person | null, loading: boolean, error: string | null });
+  const { data: person, loading, error } = useSelector((state: RootState) => state.personalDetailsSlice || { data: null, loading: false, error: null });
 
   const [showFullBio, setShowFullBio] = useState(false);
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [movies, setMovies] = useState<any[]>([]);
 
   const truncateBio = (bio: string, wordLimit: number) => {
     const words = bio.split(' ');

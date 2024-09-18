@@ -75,7 +75,14 @@ export const fetchMovieCredits = createAsyncThunk(
       }
     );
 
-    return response.data.cast as MovieCredit[];
+    // Map the response to match the Movie interface
+    return response.data.cast.map((credit: any) => ({
+      id: credit.id,
+      title: credit.title,
+      poster_path: credit.poster_path,
+      release_date: credit.release_date,
+      character: credit.character
+    }));
   }
 );
 
