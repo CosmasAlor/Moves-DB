@@ -3,13 +3,15 @@ import moviesReducer from "./TrendingSlice"; // Adjust the path accordingly
 import upcomingReducer from "./UpcomingSlice";
 import movieDetailsSlice from "./movieDetails";
 import personSlice from "./Person";
+import personalDetailsSlice from "./personalDetails";
 
 export const store = configureStore({
   reducer: {
     moviesReducer,
     upcoming: upcomingReducer,
     movieDetailsSlice,
-    personSlice
+    personSlice,
+    personalDetailsSlice,
   }
 });
 

@@ -22,7 +22,7 @@ const PopularMovies: React.FC = () => {
     if (popularMovies.length > 0) {
       startTransition(() => {
         const shuffled = [...popularMovies].sort(() => 0.5 - Math.random());
-        setRandomMovies(shuffled.slice(0, 4));
+        setRandomMovies(shuffled.slice(0, ));
       });
     }
   }, [popularMovies]);
@@ -40,15 +40,28 @@ const PopularMovies: React.FC = () => {
     <h1 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Most Popular Movies</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-10">
         {randomMovies.map((movie: Movie) => (
-         <Link href={`/movie/${movie.id}`}>
-         <div key={movie.id} className="h-96 max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-opacity duration-300 ease-in-out overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
-            <Image
-              className="rounded-t-lg w-full h-48 object-cover"
-              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-              alt={movie.title}
-              width={500}
-              height={750}
-            />
+          <Link href={`/movie/${movie.id}`} key={movie.id}>
+            <div className="h-96 max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-opacity duration-300 ease-in-out overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
+              <div className="relative">
+                <Image
+                  className="rounded-t-lg w-full h-48 object-cover"
+                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title}
+                  width={500}
+                  height={750}
+                />
+                <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
+                  <div className="consensus tight">
+                    <div className="outer_ring">
+                      <div className="user_score_chart" data-percent={movie.vote_average * 10}>
+                        <div className="percent">
+                          <span className="text-white text-sm font-bold">{Math.round(movie.vote_average * 10)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="p-5 flex flex-col flex-grow">
                 <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                   {movie.title.length > 13 ? `${movie.title.slice(0, 13)}...` : movie.title}
@@ -58,7 +71,7 @@ const PopularMovies: React.FC = () => {
                   Release <span className='px-3 m-0 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{movie.release_date}</span>
                 </div>
               </div>
-          </div>
+            </div>
           </Link>
         ))}
       </div>

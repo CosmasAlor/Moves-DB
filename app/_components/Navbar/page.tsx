@@ -3,12 +3,44 @@
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 const navigation = [
-  { name: 'Movies', path: '/' },
-  { name: 'TV Shows', path: '/tv' },
-  { name: 'People', path: '/person' },
-  { name: 'More', path: '/More' },
+  {
+    name: 'Movies',
+    path: '/',
+    subItems: [
+      { name: 'Popular', path: '/movies/popular' },
+      { name: 'Top Rated', path: '/movies/top-rated' },
+      { name: 'Now Playing', path: '/movies/now-playing' },
+      { name: 'Upcoming', path: '/movies/upcoming' },
+    ],
+  },
+  {
+    name: 'TV Shows',
+    path: '/tv',
+    subItems: [
+      { name: 'Popular', path: '/tv/popular' },
+      { name: 'Airing Today', path: '/tv/airing-today' },
+      { name: 'On The Air', path: '/tv/on-the-air' },
+      { name: 'Top Rated', path: '/tv/top-rated' },
+    ],
+  },
+  {
+    name: 'People',
+    path: '/person',
+    subItems: [
+      { name: 'Popular People', path: '/person' },
+    ],
+  },
+  {
+    name: 'More',
+    path: '/more',
+    subItems: [
+      { name: 'About', path: '/about' },
+      { name: 'Contact', path: '/contact' },
+    ],
+  },
 ];
 
 export default function Navbar() {
@@ -46,17 +78,37 @@ export default function Navbar() {
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
                 {navigation.map((item) => (
-                  <button
-                    key={item.name}
-                    onClick={() => handleNavigation(item.path)}
-                    aria-current={pathname === item.path ? 'page' : undefined} // Use pathname instead of router.pathname
-                    className={classNames(
-                      pathname === item.path ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                      'rounded-md px-3 py-2 text-sm font-medium',
+                  <div key={item.name} className="relative group">
+                    <button
+                      onClick={() => handleNavigation(item.path)}
+                      className={classNames(
+                        pathname === item.path ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                        'rounded-md px-3 py-2 text-sm font-medium',
+                      )}
+                    >
+                      {item.name}
+                    </button>
+                    {item.subItems && (
+                      <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                          {item.subItems.map((subItem) => (
+                            <Link
+                              key={subItem.name}
+                              href={subItem.path}
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              role="menuitem"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleNavigation(subItem.path);
+                              }}
+                            >
+                              {subItem.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
                     )}
-                  >
-                    {item.name}
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -116,17 +168,30 @@ export default function Navbar() {
       <DisclosurePanel className="sm:hidden">
         <div className="space-y-1 px-2 pb-3 pt-2">
           {navigation.map((item) => (
-            <DisclosureButton
-              key={item.name}
-              onClick={() => handleNavigation(item.path)}
-              aria-current={pathname === item.path ? 'page' : undefined} // Use pathname instead of router.pathname
-              className={classNames(
-                pathname === item.path ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                'block rounded-md px-3 py-2 text-base font-medium',
+            <div key={item.name}>
+              <DisclosureButton
+                onClick={() => handleNavigation(item.path)}
+                className={classNames(
+                  pathname === item.path ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                  'block rounded-md px-3 py-2 text-base font-medium w-full text-left',
+                )}
+              >
+                {item.name}
+              </DisclosureButton>
+              {item.subItems && (
+                <div className="pl-4 space-y-1">
+                  {item.subItems.map((subItem) => (
+                    <DisclosureButton
+                      key={subItem.name}
+                      onClick={() => handleNavigation(subItem.path)}
+                      className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white w-full text-left"
+                    >
+                      {subItem.name}
+                    </DisclosureButton>
+                  ))}
+                </div>
               )}
-            >
-              {item.name}
-            </DisclosureButton>
+            </div>
           ))}
         </div>
       </DisclosurePanel>
