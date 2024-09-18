@@ -5,8 +5,10 @@ import axios from 'axios';
 interface PersonalDetails {
   id: number;
   name: string;
+  age: number;
   biography: string;
   birthday: string;
+  gender: number;
   place_of_birth: string;
   profile_path: string;
   known_for_department: string;
