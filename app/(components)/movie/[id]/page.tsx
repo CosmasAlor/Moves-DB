@@ -119,11 +119,17 @@ const MovieDetails: React.FC = () => {
             {/* Left column: Poster and Movie Info */}
             <div className="lg:w-1/3 mb-8 lg:mb-0">
               <div className="bg-white dark:bg-gray-700 rounded-lg shadow-lg overflow-hidden">
-                <img 
-                  className="w-full h-auto object-cover"
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  alt={movie.title} 
-                />
+                {movie.poster_path ? (
+                  <img 
+                    className="w-full h-auto object-cover"
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    alt={movie.title} 
+                  />
+                ) : (
+                  <div className="bg-gray-400 w-full h-96 flex items-center justify-center">
+                      <h1 className="text-3xl font-bold text-gray-700">No Image</h1>
+                  </div>
+                )}
                 <div className="p-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Movie Info</h2>
                   <ul className="space-y-3 text-gray-600 dark:text-gray-300">
@@ -214,11 +220,17 @@ const ActorCard: React.FC<{ actor: Credit }> = ({ actor }) => (
   <Link href={`/personalDetails/${actor.id}`}>
     <div className="px-2">
       <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 transform">
-        <img 
-          src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : '/placeholder.png'}
-          alt={actor.name}
-          className="w-full h-48 object-cover"
-        />
+        {actor.profile_path ? (
+          <img 
+            src={`https://image.tmdb.org/t/p/w200${actor.profile_path}`}
+            alt={actor.name}
+            className="w-full h-48 object-cover"
+          />
+        ) : (
+          <div className="bg-gray-400 w-full h-48 flex items-center justify-center">
+            <h1 className="text-xl font-bold text-gray-700">No Image</h1>
+          </div>
+        )}
         <div className="p-4">
           <h3 className="text-md font-semibold text-gray-900 dark:text-white truncate">{actor.name}</h3>
           <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{actor.character}</p>
@@ -232,18 +244,26 @@ const SimilarMovieCard: React.FC<{ movie: SimilarMovie }> = ({ movie }) => (
   <Link href={`/movie/${movie.id}`}>
     <div className="px-2">
       <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md transition-transform duration-300 hover:scale-105 h-full flex flex-col">
-        <img 
-          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-          alt={movie.title}
-          className="w-full h-48 sm:h-56 md:h-64 object-cover"
-        />
+      {movie.poster_path ? (
+          <img 
+            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+            alt={movie.title}
+            className="w-full h-48 sm:h-56 md:h-64 object-cover"
+          />
+        ) : (
+          <div className="bg-gray-400 w-full h-48 sm:h-56 md:h-64 flex items-center justify-center">
+            <h1 className="text-3xl font-bold text-gray-700">No Image</h1>
+          </div>
+        )}
         <div className="p-4 flex flex-col flex-grow">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             {movie.title.length > 13 ? `${movie.title.slice(0, 13)}...` : movie.title}  
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-auto">
-            Released: <span className="font-medium">{movie.release_date}</span>
-          </p>
+          <div className="text-left">
+            <span className="inline-block px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+              {movie.release_date}
+            </span>
+          </div>
         </div>
       </div>
     </div>

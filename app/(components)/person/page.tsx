@@ -58,6 +58,8 @@ const Person: React.FC = () => {
         {people.map((person) => (
           <Link href={`/personalDetails/${person.id}`} key={person.id}>
             <div className="bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+             
+             
               <Image
                 className="rounded-t-lg w-full h-64 object-cover"
                 src={`https://image.tmdb.org/t/p/w200${person.profile_path}`}
@@ -65,6 +67,10 @@ const Person: React.FC = () => {
                 width={200}
                 height={300}
               />
+
+
+
+
               <div className="p-4">
                 <h2 className="text-xl font-semibold mb-2">{person.name}</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Department : {person.known_for_department}</p>

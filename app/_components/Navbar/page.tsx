@@ -8,17 +8,17 @@ import Link from 'next/link';
 const navigation = [
   {
     name: 'Movies',
-    path: '/',
+    path: '/movies',
     subItems: [
-      { name: 'Popular', path: '/movies/popular' },
+      { name: 'Popular', path: '/movies' },
       { name: 'Top Rated', path: '/movies/top-rated' },
-      { name: 'Now Playing', path: '/movies/now-playing' },
+      { name: 'Now Playing', path: '/movies/nowplaying' },
       { name: 'Upcoming', path: '/movies/upcoming' },
     ],
   },
   {
     name: 'TV Shows',
-    path: '/tv',
+    path: '/tv/popular',
     subItems: [
       { name: 'Popular', path: '/tv/popular' },
       { name: 'Airing Today', path: '/tv/airing-today' },
@@ -69,11 +69,17 @@ export default function Navbar() {
           </div>
           <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
             <div className="flex flex-shrink-0 items-center">
+
+            <Link href={'/'}>
               <img
-                alt="Your Company"
-                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                className="h-8 w-auto"
-              />
+                  alt="Your Company"
+                  src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                  className="h-8 w-auto"
+                />
+            </Link>
+
+
+
             </div>
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">

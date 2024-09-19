@@ -119,13 +119,17 @@ const PersonalDetails: React.FC = () => {
           {/* Left column: Image and Personal Info */}
           <div className="lg:w-1/3 mb-8 lg:mb-0">
             <div className="bg-white dark:bg-gray-700 rounded-lg shadow-lg overflow-hidden">
-              <img 
-                className="w-full h-auto object-cover"
-                src={person.profile_path 
-                  ? `https://image.tmdb.org/t/p/w500${person.profile_path}`
-                  : '/images/default-profile.png'}
-                alt={person.name} 
-              />
+              {person.profile_path ? (
+                <img 
+                  className="w-full h-auto object-cover"
+                  src={`https://image.tmdb.org/t/p/w500${person.profile_path}`}
+                  alt={person.name} 
+                />
+              ) : (
+                <div className="bg-gray-400 w-full h-96 flex items-center justify-center">
+                  <h1 className="text-3xl font-bold text-gray-700">No Image</h1>
+                </div>
+              )}
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Personal Info</h2>
                 <ul className="space-y-3 text-gray-600 dark:text-gray-300">
@@ -201,7 +205,8 @@ const PersonalDetails: React.FC = () => {
                     <MovieCard movie={movies.find(movie => movie.poster_path)!} />
                   </div>
                 ) : (
-                  <p className="text-center text-gray-600 dark:text-gray-400">No known movies available.</p>
+                  <h1 className="text-3xl font-bold text-gray-700">No movies available.</h1>
+
                 )}
               </div>
             </div>
