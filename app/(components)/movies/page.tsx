@@ -92,10 +92,10 @@ const PopularMovies: React.FC = () => {
   useEffect(() => {
     if (movies.length > 0) {
       startTransition(() => {
-        setDisplayedMovies(movies.slice(0, moviesPerPage));
+        setDisplayedMovies(movies.slice(0, moviesPerPage) as Movie[]);
       });
     }
-  }, [movies]);
+  }, [movies, moviesPerPage]);
 
   const loadMore = () => {
     setCurrentPage(prev => prev + 1);
