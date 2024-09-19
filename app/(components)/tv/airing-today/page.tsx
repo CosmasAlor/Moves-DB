@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useTransition } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAiringToday } from '@/redux/tv';
+import { fetchAiringToday, FetchAiringTodayParams } from '@/redux/tv';
 import { RootState, AppDispatch } from '@/redux/store';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -66,11 +66,12 @@ const AiringTodayTVShows: React.FC = () => {
   });
 
   useEffect(() => {
-    dispatch(fetchAiringToday({
+    const params: FetchAiringTodayParams = {
       ...filters,
       page: currentPage,
       with_genres: filters.with_genres.join(','),
-    }));
+    };
+    dispatch(fetchAiringToday(params));
   }, [dispatch, filters, currentPage]);
 
   useEffect(() => {
