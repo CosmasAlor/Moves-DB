@@ -8,14 +8,24 @@ interface TVShowDetails {
   name: string;
   overview: string;
   first_air_date: string;
+  last_air_date: string;
   poster_path: string;
   backdrop_path: string;
   vote_average: number;
+  vote_count: number;
   genres: { id: number; name: string }[];
   tagline: string;
   origin_country: string[];
-  status?: string;
-  // Add other properties as needed
+  status: string;
+  homepage: string;
+  number_of_seasons: number;
+  number_of_episodes: number;
+  in_production: boolean;
+  type: string;
+  original_language: string;
+  popularity: number;
+  networks: { id: number; name: string; logo_path: string }[];
+  created_by: { id: number; name: string; profile_path: string }[];
 }
 
 interface SimilarTVShow {
