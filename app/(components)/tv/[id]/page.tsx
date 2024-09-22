@@ -15,10 +15,62 @@ import Trending from '@/app/_components/trending/page';
 
 
 interface TVShowDetails {
-  // ... existing properties ...
+  id: number;
+  name: string;
+  overview: string;
+  first_air_date: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  genres: { id: number; name: string }[];
   status?: string;
-  // ... other properties ...
+  homepage?: string;
+  original_language: string;
+  networks?: { id: number; name: string }[];
+  created_by?: { id: number; name: string }[];
+  number_of_seasons: number;
+  last_episode_to_air?: {
+    name: string;
+    air_date: string;
+    episode_number: number;
+    season_number: number;
+    overview: string;
+  };
 }
+
+
+interface SimilarTVShow {
+  id: number;
+  name: string;
+  poster_path: string | null;
+  first_air_date?: string;
+}
+
+interface Credit {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
+}
+
+interface TVShowCredits {
+  cast: Credit[];
+  crew: {
+    id: number;
+    name: string;
+    job: string;
+    department: string;
+  }[];
+}
+
+interface TVDetailsState {
+  data: TVShowDetails | null;
+  similarShows: SimilarTVShow[];
+  credits: TVShowCredits | null;
+  loading: boolean;
+  error: string | null;
+}
+
 
 const TVShowDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();

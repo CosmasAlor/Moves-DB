@@ -8,40 +8,41 @@ interface TVShowDetails {
   name: string;
   overview: string;
   first_air_date: string;
-  last_air_date: string;
-  poster_path: string;
-  backdrop_path: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
   vote_average: number;
-  vote_count: number;
   genres: { id: number; name: string }[];
-  tagline: string;
-  origin_country: string[];
-  status: string;
-  homepage: string;
-  number_of_seasons: number;
-  number_of_episodes: number;
-  in_production: boolean;
-  type: string;
+  status?: string;
+  homepage?: string;
   original_language: string;
-  popularity: number;
-  networks: { id: number; name: string; logo_path: string }[];
-  created_by: { id: number; name: string; profile_path: string }[];
+  networks?: { id: number; name: string }[];
+  created_by?: { id: number; name: string }[];
+  number_of_seasons: number;
+  last_episode_to_air?: {
+    name: string;
+    air_date: string;
+    episode_number: number;
+    season_number: number;
+    overview: string;
+  };
 }
 
 interface SimilarTVShow {
   id: number;
   name: string;
-  poster_path: string;
-  first_air_date: string;
+  poster_path: string | null;
+  first_air_date?: string;
+}
+
+interface Credit {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
 }
 
 interface TVShowCredits {
-  cast: {
-    id: number;
-    name: string;
-    character: string;
-    profile_path: string | null;
-  }[];
+  cast: Credit[];
   crew: {
     id: number;
     name: string;
@@ -50,50 +51,20 @@ interface TVShowCredits {
   }[];
 }
 
-interface SeasonDetails {
-  id: number;
-  name: string;
-  overview: string;
-  season_number: number;
-  episodes: {
-    id: number;
-    name: string;
-    overview: string;
-    episode_number: number;
-    air_date: string;
-    // Add other episode properties as needed
-  }[];
-  // Add other season properties as needed
-}
-
-interface EpisodeDetails {
-  id: number;
-  name: string;
-  overview: string;
-  air_date: string;
-  episode_number: number;
-  season_number: number;
-  // Add other episode properties as needed
-}
-
-interface TVShowDetailsState {
+interface TVDetailsState {
   data: TVShowDetails | null;
   similarShows: SimilarTVShow[];
+  credits: TVShowCredits | null;
   loading: boolean;
   error: string | null;
-  credits: TVShowCredits | null;
-  seasonDetails: SeasonDetails | null;
-  episodeDetails: EpisodeDetails | null;
 }
 
-const initialState: TVShowDetailsState = {
+const initialState: TVDetailsState = {
   data: null,
   similarShows: [],
+  credits: null,
   loading: false,
   error: null,
-  credits: null,
-  seasonDetails: null,
-  episodeDetails: null,
 };
 
 // Create async thunks for fetching TV show details
