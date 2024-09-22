@@ -15,6 +15,12 @@ import Trending from '@/app/_components/trending/page';
 
 // ... (interface definitions for TVShow, SimilarTVShow, Credit)
 
+interface TVShowDetails {
+  // ... existing properties ...
+  status?: string;
+  // ... other properties ...
+}
+
 const TVShowDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
