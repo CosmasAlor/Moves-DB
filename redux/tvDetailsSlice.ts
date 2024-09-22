@@ -152,6 +152,20 @@ export const fetchEpisodeDetails = createAsyncThunk(
   }
 );
 
+export interface EpisodeDetails {
+  id: number;
+  name: string;
+  overview: string;
+  vote_average: number;
+  air_date: string;
+  episode_number: number;
+  season_number: number;
+  still_path: string | null;
+  runtime: number;
+  guest_stars: Credit[];
+  crew: Credit[];
+}
+
 const tvDetailsSlice = createSlice({
   name: 'tvDetails',
   initialState,

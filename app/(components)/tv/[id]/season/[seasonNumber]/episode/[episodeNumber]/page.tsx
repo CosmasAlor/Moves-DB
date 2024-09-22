@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/redux/store';
-import { fetchEpisodeDetails, EpisodeDetails as EpisodeDetailsType } from '@/redux/tvDetailsSlice';
+import { fetchEpisodeDetails } from '@/redux/tvDetailsSlice';
+import type { EpisodeDetails as EpisodeDetailsType } from '@/redux/tvDetailsSlice';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Loading from '@/app/loading';
