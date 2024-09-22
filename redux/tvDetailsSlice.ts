@@ -57,6 +57,7 @@ interface TVDetailsState {
   credits: TVShowCredits | null;
   loading: boolean;
   error: string | null;
+  episodeDetails: EpisodeDetailsType | null;
 }
 
 const initialState: TVDetailsState = {
@@ -65,6 +66,7 @@ const initialState: TVDetailsState = {
   credits: null,
   loading: false,
   error: null,
+  episodeDetails: null,
 };
 
 // Create async thunks for fetching TV show details
