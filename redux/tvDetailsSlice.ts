@@ -14,6 +14,7 @@ interface TVShowDetails {
   genres: { id: number; name: string }[];
   tagline: string;
   origin_country: string[];
+  status?: string;
   // Add other properties as needed
 }
 

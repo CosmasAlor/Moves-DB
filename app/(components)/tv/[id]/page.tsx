@@ -13,7 +13,6 @@ import Loading from '@/app/loading';
 import { FaCalendarAlt, FaStar, FaFilm, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import Trending from '@/app/_components/trending/page';
 
-// ... (interface definitions for TVShow, SimilarTVShow, Credit)
 
 interface TVShowDetails {
   // ... existing properties ...
@@ -86,6 +85,7 @@ const TVShowDetails: React.FC = () => {
   if (error || !tvShow) {
     return <div>Error loading TV show details.</div>;
   }
+  console.log(tvShow);
 
   return (
     <>
