@@ -42,9 +42,13 @@ const SeasonsPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold mb-8">{tvShow.name}: Seasons</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {tvShow.seasons?.map((season: Season) => (
-          <div key={season.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-105">
+          <Link 
+            key={season.id}
+            href={`/tv/${id}/season/${season.season_number}`}
+            className="block bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-105 cursor-pointer"
+          >
             <div className="relative h-64">
               {season.poster_path ? (
                 <Image 
@@ -67,14 +71,11 @@ const SeasonsPage: React.FC = () => {
               <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
                 {season.overview || 'No overview available.'}
               </p>
-              <Link 
-                href={`/tv/${id}/season/${season.season_number}`}
-                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors"
-              >
+              <span className="inline-block bg-blue-600 text-white px-6 py-2 rounded-full">
                 View Episodes
-              </Link>
+              </span>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
       <div className="mt-12 text-center">
