@@ -1,3 +1,46 @@
+# Movie Website
+
+A dynamic movie website built with Next.js that allows users to explore a wide range of movies. The project utilizes various technologies and APIs to provide an engaging user experience.
+
+## Table of Contents
+
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Getting Started](#getting-started)
+- [API](#api)
+- [Deployment](#deployment)
+- [License](#license)
+
+## Features
+
+- Browse and search for movies
+- Movie details with ratings and reviews
+- Responsive design using Tailwind CSS
+- State management with Redux
+- Image slider for featured movies
+- Infinite scrolling for seamless browsing
+
+## Technologies Used
+
+- **Next.js**: For server-side rendering and routing
+- **Redux**: For global state management
+- **Tailwind CSS**: For styling and responsive design
+- **Axios**: For API calls
+- **Slider**: For displaying featured movies
+- **The Movie Database (TMDb) API**: To fetch movie data
+
+## Getting Started
+
+To get started with this project, follow these steps:
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/CosmasAlor/Moves-DB.git
+   cd movie-website
+
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
