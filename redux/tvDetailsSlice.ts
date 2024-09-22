@@ -57,7 +57,18 @@ interface TVDetailsState {
   credits: TVShowCredits | null;
   loading: boolean;
   error: string | null;
-  episodeDetails: EpisodeDetailsType | null;
+  episodeDetails: EpisodeDetails | null;
+  seasonDetails: SeasonDetails | null;
+}
+
+interface SeasonDetails {
+  id: number;
+  name: string;
+  overview: string;
+  season_number: number;
+  episode_count: number;
+  air_date: string;
+  poster_path: string | null;
 }
 
 const initialState: TVDetailsState = {
@@ -67,6 +78,7 @@ const initialState: TVDetailsState = {
   loading: false,
   error: null,
   episodeDetails: null,
+  seasonDetails: null,
 };
 
 // Create async thunks for fetching TV show details

@@ -14,8 +14,11 @@ const SeasonEpisodesPage: React.FC = () => {
   const seasonNumber = params.seasonNumber as string;
   
   const dispatch = useDispatch<AppDispatch>();
-  const { seasonDetails, loading, error } = useSelector((state: RootState) => state.tvDetails);
+  const tvDetails = useSelector((state: RootState) => state.tvDetails);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  // Log the entire tvDetails state
+  console.log('TVDetails state:', tvDetails);
 
   useEffect(() => {
     if (id && seasonNumber) {
@@ -24,62 +27,23 @@ const SeasonEpisodesPage: React.FC = () => {
     }
   }, [dispatch, id, seasonNumber]);
 
-  if (loading || !isDataLoaded) {
+  if (tvDetails.loading || !isDataLoaded) {
     return <Loading />;
   }
 
-  if (error || !seasonDetails) {
-    return <div>{error || 'Error loading season details.'}</div>;
+  if (tvDetails.error) {
+    return <div><Loading /></div>;
   }
 
+  // Render the content based on what's available in tvDetails
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-12 border-b border-gray-200 dark:border-gray-700 pb-8">
-        <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">{seasonDetails.name}</h1>
-        <div className="flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-400 mb-4">
-          <span className="mr-4">Air Date: {seasonDetails.air_date || 'N/A'}</span>
-          <span className="mr-4">•</span>
-          <span>Episodes: {seasonDetails.episodes?.length || 0}</span>
-        </div>
-        <p className="text-gray-700 dark:text-gray-300 text-lg">{seasonDetails.overview}</p>
-      </div>
-
-      <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">Episodes</h2>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {seasonDetails.episodes?.map((episode) => (
-          <Link 
-            key={episode.id} 
-            href={`/tv/${id}/season/${seasonNumber}/episode/${episode.episode_number}`}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col hover:shadow-lg transition-shadow"
-          >
-            <div className="relative">
-              {episode.still_path ? (
-                <img
-                  className="w-full h-48 object-cover"
-                  src={`https://image.tmdb.org/t/p/w500${episode.still_path}`}
-                  alt={episode.name}
-                />
-              ) : (
-                <div className="w-full h-48 bg-gray-300 flex items-center justify-center">
-                  <span className="text-gray-600">No image available</span>
-                </div>
-              )}
-              <span className="absolute top-2 right-2 bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">
-                Episode {episode.episode_number}
-              </span>
-            </div>
-            <div className="p-4 flex-grow">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{episode.name}</h3>
-              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <span>Air Date: {episode.air_date || 'N/A'}</span>
-                <span>Rating: {episode.vote_average.toFixed(1)}</span>
-              </div>
-              <p className="text-gray-700 dark:text-gray-300 text-sm line-clamp-3">{episode.overview}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">Season Details</h1>
+      
+      {/* Render all properties of tvDetails */}
+      <pre className="bg-gray-100 p-4 rounded-md overflow-auto">
+        {JSON.stringify(tvDetails, null, 2)}
+      </pre>
 
       <div className="mt-12 text-center">
         <Link 

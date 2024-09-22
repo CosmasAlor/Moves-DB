@@ -48,13 +48,25 @@ const sortOptions = [
   { value: 'first_air_date.asc', label: 'First Air Date Ascending' },
 ];
 
+interface TvShowExtended {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string;
+  first_air_date: string;
+  vote_average: number;
+  popularity: number;
+  genre_ids: number[];
+}
+
 const PopularTVShows: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { topRated, loading, error } = useSelector((state: RootState) => state.tv);
-  const [displayedShows, setDisplayedShows] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const showsPerPage = 15;
   const [isPending, startTransition] = useTransition();
+  const [displayedShows, setDisplayedShows] = useState<TvShowExtended[]>([]);
+
+  const showsPerPage = 20;
 
   const [filters, setFilters] = useState({
     language: 'en-US',
@@ -67,39 +79,23 @@ const PopularTVShows: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchTopRated({
-      ...filters,
+      language: filters.language,
+      sort_by: filters.sort_by,
+      'vote_average.gte': filters['vote_average.gte'],
+      'first_air_date.gte': filters['first_air_date.gte'],
+      'first_air_date.lte': filters['first_air_date.lte'],
+      with_genres: filters.with_genres.join(','), // Convert array to comma-separated string
       page: currentPage,
-      with_genres: filters.with_genres.join(','),
     }));
   }, [dispatch, filters, currentPage]);
 
-  useEffect(() => {
-    if (topRated.length > 0) {
-      startTransition(() => {
-        setDisplayedShows(topRated.slice(0, showsPerPage));
-      });
-    }
-  }, [topRated]);
-
   const loadMore = () => {
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    const newDisplayedShows = topRated.slice(0, nextPage * showsPerPage);
-    startTransition(() => {
-      setDisplayedShows(newDisplayedShows);
-    });
+    setCurrentPage((prevPage) => prevPage + 1);
   };
 
   const updateFilters = (newFilters: Partial<typeof filters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(1);
-    setDisplayedShows([]);
-    dispatch(fetchTopRated({
-      ...filters,
-      ...newFilters,
-      page: 1,
-      with_genres: filters.with_genres.join(','),
-    }));
   };
 
   const handleGenreChange = (genre: string) => {
@@ -110,6 +106,7 @@ const PopularTVShows: React.FC = () => {
         : [...prev.with_genres, genreId];
       return { ...prev, with_genres: newGenres };
     });
+    setCurrentPage(1);
   };
 
   // Update the loading condition
@@ -186,6 +183,7 @@ const PopularTVShows: React.FC = () => {
               value={filters['vote_average.gte']}
               onChange={(e) => updateFilters({ 'vote_average.gte': parseFloat(e.target.value) })}
               className="w-full"
+              aria-label="Minimum user score"
             />
             <span className="w-10 text-xs text-center">{filters['vote_average.gte'].toFixed(1)}</span>
           </div>
@@ -258,9 +256,9 @@ const PopularTVShows: React.FC = () => {
             <button
               onClick={loadMore}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              disabled={loading === 'pending'}
+              disabled={isPending}
             >
-              {loading === 'pending' ? <Loading /> : 'Load More'}
+              {isPending ? 'Loading...' : 'Load More'}
             </button>
           </div>
         )}

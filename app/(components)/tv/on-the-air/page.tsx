@@ -46,13 +46,25 @@ const sortOptions = [
   { value: 'first_air_date.asc', label: 'Release Date Ascending' },
 ];
 
+interface TvShowExtended {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string;
+  first_air_date: string;
+  vote_average: number;
+  popularity: number;
+  genre_ids: number[];
+}
+
 const OnTheAirTVShows: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { onTheAir, loading, error } = useSelector((state: RootState) => state.tv);
-  const [displayedShows, setDisplayedShows] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const showsPerPage = 15;
   const [isPending, startTransition] = useTransition();
+  const [displayedShows, setDisplayedShows] = useState<TvShowExtended[]>([]);
+
+  const showsPerPage = 20;
 
   const [filters, setFilters] = useState({
     language: 'en-US',
@@ -64,29 +76,38 @@ const OnTheAirTVShows: React.FC = () => {
   });
 
   useEffect(() => {
-    dispatch(fetchOnTheAir({
-      ...filters,
-      page: currentPage,
-      with_genres: filters.with_genres.join(','),
-    }));
-  }, [dispatch, filters, currentPage]);
+    dispatch(fetchOnTheAir());
+  }, [dispatch]);
 
   useEffect(() => {
     if (onTheAir.length > 0) {
+      const filteredShows = (onTheAir as TvShowExtended[]).filter(show => {
+        return (
+          show.vote_average >= filters['vote_average.gte'] &&
+          new Date(show.first_air_date) >= new Date(filters['first_air_date.gte']) &&
+          new Date(show.first_air_date) <= new Date(filters['first_air_date.lte']) &&
+          (filters.with_genres.length === 0 || filters.with_genres.some(genre => show.genre_ids.includes(genre)))
+        );
+      });
+
+      const sortedShows = filteredShows.sort((a, b) => {
+        if (filters.sort_by === 'popularity.desc') return b.popularity - a.popularity;
+        if (filters.sort_by === 'popularity.asc') return a.popularity - b.popularity;
+        if (filters.sort_by === 'vote_average.desc') return b.vote_average - a.vote_average;
+        if (filters.sort_by === 'vote_average.asc') return a.vote_average - b.vote_average;
+        if (filters.sort_by === 'first_air_date.desc') return new Date(b.first_air_date).getTime() - new Date(a.first_air_date).getTime();
+        if (filters.sort_by === 'first_air_date.asc') return new Date(a.first_air_date).getTime() - new Date(b.first_air_date).getTime();
+        return 0;
+      });
+
       startTransition(() => {
-        setDisplayedShows(onTheAir);
+        setDisplayedShows(sortedShows.slice(0, currentPage * showsPerPage));
       });
     }
-  }, [onTheAir]);
+  }, [onTheAir, filters, currentPage]);
 
   const loadMore = () => {
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    dispatch(fetchOnTheAir({
-      ...filters,
-      page: nextPage,
-      with_genres: filters.with_genres.join(','),
-    }));
+    setCurrentPage((prevPage) => prevPage + 1);
   };
 
   const updateFilters = (newFilters: Partial<typeof filters>) => {
@@ -179,6 +200,7 @@ const OnTheAirTVShows: React.FC = () => {
               value={filters['vote_average.gte']}
               onChange={(e) => updateFilters({ 'vote_average.gte': parseFloat(e.target.value) })}
               className="w-full"
+              aria-label="Minimum user score"
             />
             <span className="w-10 text-xs text-center">{filters['vote_average.gte'].toFixed(1)}</span>
           </div>
@@ -250,15 +272,17 @@ const OnTheAirTVShows: React.FC = () => {
                 </Link>
               ))}
             </div>
-            <div className="flex justify-center mt-4 mb-8">
-              <button
-                onClick={loadMore}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                disabled={loading === 'pending'}
-              >
-                {loading === 'pending' ? <Loading /> : 'Load More'}
-              </button>
-            </div>
+            {displayedShows.length < onTheAir.length && (
+              <div className="flex justify-center mt-4 mb-8">
+                <button
+                  onClick={loadMore}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  disabled={isPending}
+                >
+                  {isPending ? 'Loading...' : 'Load More'}
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div className="flex justify-center items-center h-full">

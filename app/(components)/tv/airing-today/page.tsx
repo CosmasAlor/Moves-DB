@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useTransition } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAiringToday, FetchAiringTodayParams } from '@/redux/tv';
+import { fetchAiringToday } from '@/redux/tv';
 import { RootState, AppDispatch } from '@/redux/store';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -48,13 +48,25 @@ const sortOptions = [
   { value: 'first_air_date.asc', label: 'First Air Date Ascending' },
 ];
 
-const AiringTodayTVShows: React.FC = () => {
+interface TvShowExtended {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string;
+  first_air_date: string;
+  vote_average: number;
+  popularity: number;
+  genre_ids: number[];
+}
+
+const AiringTodayPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { airingToday, loading, error } = useSelector((state: RootState) => state.tv);
-  const [displayedShows, setDisplayedShows] = useState<any[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const showsPerPage = 15;
+  const [page, setPage] = useState(1);
   const [isPending, startTransition] = useTransition();
+  const [displayedShows, setDisplayedShows] = useState<TvShowExtended[]>([]);
+
+  const showsPerPage = 20;
 
   const [filters, setFilters] = useState({
     language: 'en-US',
@@ -66,35 +78,43 @@ const AiringTodayTVShows: React.FC = () => {
   });
 
   useEffect(() => {
-    const params: FetchAiringTodayParams = {
-      ...filters,
-      page: currentPage,
-      with_genres: filters.with_genres.join(','),
-    };
-    dispatch(fetchAiringToday(params));
-  }, [dispatch, filters, currentPage]);
+    dispatch(fetchAiringToday());
+  }, [dispatch]);
 
   useEffect(() => {
     if (airingToday.length > 0) {
+      const filteredShows = (airingToday as TvShowExtended[]).filter(show => {
+        return (
+          show.vote_average >= filters['vote_average.gte'] &&
+          new Date(show.first_air_date) >= new Date(filters['first_air_date.gte']) &&
+          new Date(show.first_air_date) <= new Date(filters['first_air_date.lte']) &&
+          (filters.with_genres.length === 0 || filters.with_genres.some(genre => show.genre_ids.includes(genre)))
+        );
+      });
+
+      const sortedShows = filteredShows.sort((a, b) => {
+        if (filters.sort_by === 'popularity.desc') return b.popularity - a.popularity;
+        if (filters.sort_by === 'popularity.asc') return a.popularity - b.popularity;
+        if (filters.sort_by === 'vote_average.desc') return b.vote_average - a.vote_average;
+        if (filters.sort_by === 'vote_average.asc') return a.vote_average - b.vote_average;
+        if (filters.sort_by === 'first_air_date.desc') return new Date(b.first_air_date).getTime() - new Date(a.first_air_date).getTime();
+        if (filters.sort_by === 'first_air_date.asc') return new Date(a.first_air_date).getTime() - new Date(b.first_air_date).getTime();
+        return 0;
+      });
+
       startTransition(() => {
-        setDisplayedShows(airingToday.slice(0, showsPerPage));
+        setDisplayedShows(sortedShows.slice(0, page * showsPerPage));
       });
     }
-  }, [airingToday]);
+  }, [airingToday, filters, page]);
 
   const loadMore = () => {
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    const newDisplayedShows = airingToday.slice(0, nextPage * showsPerPage);
-    startTransition(() => {
-      setDisplayedShows(newDisplayedShows);
-    });
+    setPage((prevPage) => prevPage + 1);
   };
 
   const updateFilters = (newFilters: Partial<typeof filters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
-    setCurrentPage(1);
-    setDisplayedShows([]);
+    setPage(1);
   };
 
   const handleGenreChange = (genre: string) => {
@@ -105,8 +125,7 @@ const AiringTodayTVShows: React.FC = () => {
         : [...prev.with_genres, genreId];
       return { ...prev, with_genres: newGenres };
     });
-    setCurrentPage(1);
-    setDisplayedShows([]);
+    setPage(1);
   };
 
   if (loading === 'pending' && displayedShows.length === 0) {
@@ -182,6 +201,7 @@ const AiringTodayTVShows: React.FC = () => {
               value={filters['vote_average.gte']}
               onChange={(e) => updateFilters({ 'vote_average.gte': parseFloat(e.target.value) })}
               className="w-full"
+              aria-label="Minimum user score"
             />
             <span className="w-10 text-xs text-center">{filters['vote_average.gte'].toFixed(1)}</span>
           </div>
@@ -254,8 +274,9 @@ const AiringTodayTVShows: React.FC = () => {
             <button
               onClick={loadMore}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              disabled={isPending}
             >
-              Load More
+              {isPending ? 'Loading...' : 'Load More'}
             </button>
           </div>
         )}
@@ -264,4 +285,4 @@ const AiringTodayTVShows: React.FC = () => {
   );
 };
 
-export default AiringTodayTVShows;
+export default AiringTodayPage;

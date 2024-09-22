@@ -15,6 +15,39 @@ import 'slick-carousel/slick/slick-theme.css';
 import Link from 'next/link';
 import Trending from '@/app/_components/trending/page';
 
+// Add this type definition
+type Actor = {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
+};
+
+// Add the ActorCard component
+const ActorCard: React.FC<{ actor: Actor }> = ({ actor }) => (
+  <Link href={`/personalDetails/${actor.id}`}>
+    <div className="px-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 transform">
+        {actor.profile_path ? (
+          <img
+            src={`https://image.tmdb.org/t/p/w200${actor.profile_path}`}
+            alt={actor.name}
+            className="w-full h-48 object-cover"
+          />
+        ) : (
+          <div className="bg-gray-400 w-full h-48 flex items-center justify-center">
+            <h1 className="text-xl font-bold text-gray-700">No Image</h1>
+          </div>
+        )}
+        <div className="p-4">
+          <h3 className="text-md font-semibold text-gray-900 dark:text-white truncate">{actor.name}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{actor.character}</p>
+        </div>
+      </div>
+    </div>
+  </Link>
+);
+
 const EpisodeDetails: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { episodeDetails, loading, error } = useSelector((state: RootState) => state.tvDetails);
@@ -169,7 +202,7 @@ const EpisodeDetails: React.FC = () => {
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Crew</h2>
           <Slider {...sliderSettings}>
             {episode.crew.map((member) => (
-              <CrewCard key={member.credit_id} member={member} />
+              <CrewCard key={member.id} member={member} />
             ))}
           </Slider>
         </div>
@@ -185,30 +218,16 @@ const EpisodeDetails: React.FC = () => {
   );
 };
 
-const ActorCard: React.FC<{ actor: Credit }> = ({ actor }) => (
-  <Link href={`/personalDetails/${actor.id}`}>
-    <div className="px-2">
-      <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 transform">
-        {actor.profile_path ? (
-          <img
-            src={`https://image.tmdb.org/t/p/w200${actor.profile_path}`}
-            alt={actor.name}
-            className="w-full h-48 object-cover"
-          />
-        ) : (
-          <div className="bg-gray-400 w-full h-48 flex items-center justify-center">
-            <h1 className="text-xl font-bold text-gray-700">No Image</h1>
-          </div>
-        )}
-        <div className="p-4">
-          <h3 className="text-md font-semibold text-gray-900 dark:text-white truncate">{actor.name}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{actor.character}</p>
-        </div>
-      </div>
-    </div>
-  </Link>
-);
+// Update or add this type definition to match your actual Credit type
+type Credit = {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  department?: string;
+  job?: string;
+};
 
+// Update the CrewCard component to use Credit type
 const CrewCard: React.FC<{ member: Credit }> = ({ member }) => (
   <Link href={`/personalDetails/${member.id}`}>
     <div className="px-2">
@@ -226,7 +245,9 @@ const CrewCard: React.FC<{ member: Credit }> = ({ member }) => (
         )}
         <div className="p-4">
           <h3 className="text-md font-semibold text-gray-900 dark:text-white truncate">{member.name}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{member.job}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
+            {member.job || member.department || 'Crew Member'}
+          </p>
         </div>
       </div>
     </div>

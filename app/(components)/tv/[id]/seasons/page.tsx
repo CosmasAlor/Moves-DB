@@ -9,14 +9,10 @@ import Link from 'next/link';
 import Loading from '@/app/loading';
 import Image from 'next/image';
 
-interface Season {
-  air_date: string;
-  episode_count: number;
-  id: number;
+// Update this interface to match your actual data structure
+interface TVShowDetails {
   name: string;
-  overview: string;
-  poster_path: string;
-  season_number: number;
+  // Add other properties that exist in your TVShowDetails
 }
 
 const SeasonsPage: React.FC = () => {
@@ -39,45 +35,33 @@ const SeasonsPage: React.FC = () => {
     return <div>Error loading TV show details.</div>;
   }
 
+  // Log the tvShow object to see its structure
+  console.log('TV Show Details:', tvShow);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold mb-8">{tvShow.name}: Seasons</h1>
+      
+      {/* Render the raw data for debugging */}
+      <pre className="bg-gray-100 p-4 rounded-md overflow-auto mb-8">
+        {JSON.stringify(tvShow, null, 2)}
+      </pre>
+
+      {/* Uncomment and modify this section once we know the correct structure */}
+      {/*
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {tvShow.seasons?.map((season: Season) => (
-          <Link 
+        {tvShow.seasons?.map((season) => (
+          <Link
             key={season.id}
             href={`/tv/${id}/season/${season.season_number}`}
             className="block bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-105 cursor-pointer"
           >
-            <div className="relative h-64">
-              {season.poster_path ? (
-                <Image 
-                  src={`https://image.tmdb.org/t/p/w300${season.poster_path}`}
-                  alt={season.name}
-                  layout="fill"
-                  objectFit="cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                  <span className="text-gray-600">No poster available</span>
-                </div>
-              )}
-            </div>
-            <div className="p-6">
-              <h2 className="text-2xl font-semibold mb-3">{season.name}</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                <span className="font-medium">Episodes:</span> {season.episode_count} | <span className="font-medium">Air Date:</span> {season.air_date || 'N/A'}
-              </p>
-              <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
-                {season.overview || 'No overview available.'}
-              </p>
-              <span className="inline-block bg-blue-600 text-white px-6 py-2 rounded-full">
-                View Episodes
-              </span>
-            </div>
+            // ... (rest of the season card content)
           </Link>
         ))}
       </div>
+      */}
+
       <div className="mt-12 text-center">
         <Link 
           href={`/tv/${id}`}

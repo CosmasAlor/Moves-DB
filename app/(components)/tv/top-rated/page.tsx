@@ -7,6 +7,8 @@ import { RootState, AppDispatch } from '@/redux/store';
 import Image from 'next/image';
 import Link from 'next/link';
 import Loading from '@/app/loading'; // Import the Loading component
+import { TvShow } from '@/redux/tv'; // Import the TvShow type from your Redux slice
+
 
 // Define genre mapping
 const genreMap: { [key: string]: number } = {
@@ -48,10 +50,12 @@ const sortOptions = [
   { value: 'first_air_date.asc', label: 'First Air Date Ascending' },
 ];
 
+
+
 const TopRatedTVShows: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { topRated, loading, error } = useSelector((state: RootState) => state.tv);
-  const [displayedShows, setDisplayedShows] = useState<any[]>([]);
+  const [displayedShows, setDisplayedShows] = useState<TvShow[]>([]); // Use TvShow from Redux
   const [currentPage, setCurrentPage] = useState(1);
   const showsPerPage = 15;
   const [isPending, startTransition] = useTransition();
@@ -64,6 +68,8 @@ const TopRatedTVShows: React.FC = () => {
     'first_air_date.lte': '2024-12-31',
     with_genres: [] as number[],
   });
+
+  const [imgError, setImgError] = useState<{[key: number]: boolean}>({});
 
   useEffect(() => {
     dispatch(fetchTopRated({
@@ -107,10 +113,6 @@ const TopRatedTVShows: React.FC = () => {
   // Update the loading condition
   if (loading === 'pending' && displayedShows.length === 0) {
     return <Loading />;
-  }
-
-  if (loading === 'failed') {
-    return <div>Error: {error}</div>;
   }
 
   return (
@@ -216,51 +218,61 @@ const TopRatedTVShows: React.FC = () => {
         </div>
       </div>
       <div className="w-full md:w-3/4">
-        {loading === 'failed' ? (
-          <div className="p-4 text-red-500">Error: {error}</div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-              {displayedShows.map((show) => (
-                <Link href={`/tv/${show.id}`} key={show.id}>
-                  <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
-                    <div className="relative">
-                      <Image
-                        className="w-full h-48 object-cover"
-                        src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
-                        alt={show.name}
-                        width={500}
-                        height={750}
-                      />
-                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
-                        <div className="text-white text-sm font-bold">{Math.round(show.vote_average * 10)}%</div>
-                      </div>
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-1">
-                        {show.name}
-                      </h5>
-                      <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-2">{show.overview}</p>
-                      <div className="mt-auto">
-                        <span className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{show.first_air_date}</span>
-                      </div>
-                    </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+          {displayedShows.map((show: TvShow) => (
+            <Link href={`/tv/${show.id}`} key={show.id}>
+              <div 
+                className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" 
+                style={{ opacity: isPending ? 0.7 : 1 }}
+              >
+                <div className="relative">
+                  <Image
+                    className="w-full h-48 object-cover"
+                    src={
+                      imgError[show.id] || !show.poster_path
+                        ? '/path/to/fallback/image.jpg'
+                        : `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                    }
+                    alt={show.name}
+                    width={500}
+                    height={750}
+                    onError={() => setImgError(prev => ({...prev, [show.id]: true}))}
+                  />
+                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
+                    <div className="text-white text-sm font-bold">{Math.round(show.vote_average * 10)}%</div>
                   </div>
-                </Link>
-              ))}
-            </div>
-            {topRated.length > displayedShows.length && (
-              <div className="flex justify-center mt-4 mb-8">
-                <button
-                  onClick={loadMore}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                  disabled={loading === 'pending'}
-                >
-                  {loading === 'pending' ? 'Loading...' : 'Load More'}
-                </button>
+                </div>
+                <div className="p-4 flex flex-col flex-grow">
+                  <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-1">
+                    {show.name}
+                  </h5>
+                  <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-2">{show.overview}</p>
+                  <div className="mt-auto">
+                    <span className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{show.first_air_date}</span>
+                  </div>
+                </div>
               </div>
-            )}
-          </>
+            </Link>
+          ))}
+        </div>
+        {topRated.length > displayedShows.length && (
+          <div className="flex justify-center mt-4 mb-8">
+            <button
+              onClick={loadMore}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              disabled={loading === 'pending'}
+              aria-label="Load more TV shows"
+            >
+              {loading === 'pending' ? (
+                <>
+                  <span className="spinner mr-2"></span>
+                  <Loading />
+                </>
+              ) : (
+                'Load More'
+              )}
+            </button>
+          </div>
         )}
       </div>
     </div>
