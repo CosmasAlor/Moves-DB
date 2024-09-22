@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useTransition } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOnTheAir } from '@/redux/tv';
-import { RootState, AppDispatch } from '@/redux/store';
+import { AppDispatch, RootState } from '@/redux/store';
+import { fetchOnTheAir, TvShow } from '@/redux/tv';
+import { TVShow } from '@/app/interfaces';
 import Image from 'next/image';
 import Link from 'next/link';
 import Loading from '@/app/loading';
@@ -36,75 +37,42 @@ const languageOptions = [
   // Add more languages as needed
 ];
 
-// Define sortOptions
-const sortOptions = [
-  { value: 'popularity.desc', label: 'Popularity Descending' },
-  { value: 'popularity.asc', label: 'Popularity Ascending' },
-  { value: 'vote_average.desc', label: 'Rating Descending' },
-  { value: 'vote_average.asc', label: 'Rating Ascending' },
-  { value: 'first_air_date.desc', label: 'Release Date Descending' },
-  { value: 'first_air_date.asc', label: 'Release Date Ascending' },
-];
-
-interface TvShowExtended {
-  id: number;
-  name: string;
-  overview: string;
-  poster_path: string;
-  first_air_date: string;
-  vote_average: number;
-  popularity: number;
-  genre_ids: number[];
-}
-
 const OnTheAirTVShows: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { onTheAir, loading, error } = useSelector((state: RootState) => state.tv);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [displayedShows, setDisplayedShows] = useState<TvShow[]>([]);
   const [isPending, startTransition] = useTransition();
-  const [displayedShows, setDisplayedShows] = useState<TvShowExtended[]>([]);
-
-  const showsPerPage = 20;
+  const [currentPage, setCurrentPage] = useState(1);
+  const showsPerPage = 15;
 
   const [filters, setFilters] = useState({
     language: 'en-US',
-    sort_by: 'popularity.desc',
     'vote_average.gte': 0,
-    'first_air_date.gte': '2020-01-01',
-    'first_air_date.lte': '2024-12-31',
     with_genres: [] as number[],
   });
 
   useEffect(() => {
-    dispatch(fetchOnTheAir());
-  }, [dispatch]);
+    const fetchData = () => {
+      dispatch(fetchOnTheAir());
+    };
+
+    fetchData();
+    const intervalId = setInterval(fetchData, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [dispatch, filters, currentPage]);
 
   useEffect(() => {
     if (onTheAir.length > 0) {
-      const filteredShows = (onTheAir as TvShowExtended[]).filter(show => {
-        return (
-          show.vote_average >= filters['vote_average.gte'] &&
-          new Date(show.first_air_date) >= new Date(filters['first_air_date.gte']) &&
-          new Date(show.first_air_date) <= new Date(filters['first_air_date.lte']) &&
-          (filters.with_genres.length === 0 || filters.with_genres.some(genre => show.genre_ids.includes(genre)))
-        );
-      });
-
-      const sortedShows = filteredShows.sort((a, b) => {
-        if (filters.sort_by === 'popularity.desc') return b.popularity - a.popularity;
-        if (filters.sort_by === 'popularity.asc') return a.popularity - b.popularity;
-        if (filters.sort_by === 'vote_average.desc') return b.vote_average - a.vote_average;
-        if (filters.sort_by === 'vote_average.asc') return a.vote_average - b.vote_average;
-        if (filters.sort_by === 'first_air_date.desc') return new Date(b.first_air_date).getTime() - new Date(a.first_air_date).getTime();
-        if (filters.sort_by === 'first_air_date.asc') return new Date(a.first_air_date).getTime() - new Date(b.first_air_date).getTime();
-        return 0;
-      });
-
       startTransition(() => {
-        setDisplayedShows(sortedShows.slice(0, currentPage * showsPerPage));
+        const filteredShows = onTheAir.filter(show => 
+          show.vote_average >= filters['vote_average.gte'] &&
+          (filters.with_genres.length === 0 || filters.with_genres.some(genreId => show.genre_ids.includes(genreId)))
+        );
+        setDisplayedShows(filteredShows.slice(0, currentPage * showsPerPage));
       });
     }
-  }, [onTheAir, filters, currentPage]);
+  }, [onTheAir, currentPage, filters]);
 
   const loadMore = () => {
     setCurrentPage((prevPage) => prevPage + 1);
@@ -126,12 +94,11 @@ const OnTheAirTVShows: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Update the loading condition
-  if (loading === 'pending' || (loading === 'idle' && displayedShows.length === 0)) {
+  if (loading === 'pending' && displayedShows.length === 0) {
     return <Loading />;
   }
 
-  if (loading === 'failed') {
+  if (error) {
     return <div>Error: {error}</div>;
   }
 
@@ -159,32 +126,6 @@ const OnTheAirTVShows: React.FC = () => {
                 {genre}
               </button>
             ))}
-          </div>
-        </div>
-        
-        {/* First Air Date filter */}
-        <div className="mb-3">
-          <h3 className="mb-1 text-sm font-medium">First Air Date Range</h3>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              min="1900"
-              max={new Date().getFullYear()}
-              value={new Date(filters['first_air_date.gte']).getFullYear()}
-              onChange={(e) => updateFilters({ 'first_air_date.gte': `${e.target.value}-01-01` })}
-              className="w-1/2 p-1 text-sm border rounded"
-              placeholder="From"
-            />
-            <span className="text-xs">to</span>
-            <input
-              type="number"
-              min="1900"
-              max={new Date().getFullYear()}
-              value={new Date(filters['first_air_date.lte']).getFullYear()}
-              onChange={(e) => updateFilters({ 'first_air_date.lte': `${e.target.value}-12-31` })}
-              className="w-1/2 p-1 text-sm border rounded"
-              placeholder="To"
-            />
           </div>
         </div>
         
@@ -221,72 +162,47 @@ const OnTheAirTVShows: React.FC = () => {
             ))}
           </select>
         </div>
-        
-        {/* Sort filter */}
-        <div className="mb-3">
-          <h3 className="mb-1 text-sm font-medium">Sort By</h3>
-          <select
-            value={filters.sort_by}
-            onChange={(e) => updateFilters({ sort_by: e.target.value })}
-            className="w-full p-1 text-sm border rounded"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
       <div className="w-full md:w-3/4">
-        {displayedShows.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-              {displayedShows.map((show) => (
-                <Link href={`/tv/${show.id}`} key={show.id}>
-                  <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
-                    <div className="relative">
-                      <Image
-                        className="w-full h-48 object-cover"
-                        src={show.poster_path 
-                          ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
-                          : '/path/to/placeholder-image.jpg'}
-                        alt={show.name}
-                        width={500}
-                        height={750}
-                      />
-                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
-                        <div className="text-white text-sm font-bold">{Math.round(show.vote_average * 10)}%</div>
-                      </div>
-                    </div>
-                    <div className="p-4 flex flex-col flex-grow">
-                      <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-1">
-                        {show.name}
-                      </h5>
-                      <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-2">{show.overview}</p>
-                      <div className="mt-auto">
-                        <span className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{show.first_air_date}</span>
-                      </div>
-                    </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+          {displayedShows.map((show: TvShow) => (
+            <Link href={`/tv/${show.id}`} key={show.id}>
+              <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
+                <div className="relative">
+                  <Image
+                    className="w-full h-48 object-cover"
+                    src={show.poster_path 
+                      ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                      : '/path/to/placeholder-image.jpg'}
+                    alt={show.name}
+                    width={500}
+                    height={750}
+                  />
+                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
+                    <div className="text-white text-sm font-bold">{Math.round(show.vote_average * 10)}%</div>
                   </div>
-                </Link>
-              ))}
-            </div>
-            {displayedShows.length < onTheAir.length && (
-              <div className="flex justify-center mt-4 mb-8">
-                <button
-                  onClick={loadMore}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                  disabled={isPending}
-                >
-                  {isPending ? 'Loading...' : 'Load More'}
-                </button>
+                </div>
+                <div className="p-4 flex flex-col flex-grow">
+                  <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-1">
+                    {show.name}
+                  </h5>
+                  <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-2">{show.overview}</p>
+                  <div className="mt-auto">
+                    <span className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{show.first_air_date}</span>
+                  </div>
+                </div>
               </div>
-            )}
-          </>
-        ) : (
-          <div className="flex justify-center items-center h-full">
-            <p>No shows found. Try adjusting your filters.</p>
+            </Link>
+          ))}
+        </div>
+        {onTheAir.length > displayedShows.length && (
+          <div className="flex justify-center mt-4 mb-8">
+            <button
+              onClick={loadMore}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              Load More
+            </button>
           </div>
         )}
       </div>

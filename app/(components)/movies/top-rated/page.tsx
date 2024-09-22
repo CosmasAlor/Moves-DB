@@ -7,6 +7,7 @@ import { GetTopRated } from '@/redux/UpcomingSlice';
 import { Movie } from '@/app/interfaces';
 import Image from 'next/image';
 import Link from 'next/link';
+import Loading from '@/app/loading';
 
 // Define genre mapping
 const genreMap: { [key: string]: number } = {
@@ -99,7 +100,7 @@ const TopRated: React.FC = () => {
   };
 
   if (isLoading && displayedMovies.length === 0) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   if (error) {

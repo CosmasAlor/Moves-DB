@@ -13,64 +13,7 @@ import Loading from '@/app/loading';
 import { FaCalendarAlt, FaStar, FaFilm, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import Trending from '@/app/_components/trending/page';
 
-
-interface TVShowDetails {
-  id: number;
-  name: string;
-  overview: string;
-  first_air_date: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  vote_average: number;
-  genres: { id: number; name: string }[];
-  status?: string;
-  homepage?: string;
-  original_language: string;
-  networks?: { id: number; name: string }[];
-  created_by?: { id: number; name: string }[];
-  number_of_seasons: number;
-  last_episode_to_air?: {
-    name: string;
-    air_date: string;
-    episode_number: number;
-    season_number: number;
-    overview: string;
-  };
-}
-
-
-interface SimilarTVShow {
-  id: number;
-  name: string;
-  poster_path: string | null;
-  first_air_date?: string;
-}
-
-interface Credit {
-  id: number;
-  name: string;
-  character: string;
-  profile_path: string | null;
-}
-
-interface TVShowCredits {
-  cast: Credit[];
-  crew: {
-    id: number;
-    name: string;
-    job: string;
-    department: string;
-  }[];
-}
-
-interface TVDetailsState {
-  data: TVShowDetails | null;
-  similarShows: SimilarTVShow[];
-  credits: TVShowCredits | null;
-  loading: boolean;
-  error: string | null;
-}
-
+// ... (interface definitions for TVShow, SimilarTVShow, Credit)
 
 const TVShowDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -82,7 +25,7 @@ const TVShowDetails: React.FC = () => {
 
   const [showFullOverview, setShowFullOverview] = useState(false);
 
-  const sliderSettings = useMemo(() => ({
+  const castSliderSettings = useMemo(() => ({
     dots: false,
     infinite: true,
     speed: 500,
@@ -96,6 +39,37 @@ const TVShowDetails: React.FC = () => {
         breakpoint: 1024,
         settings: {
           slidesToShow: 3,
+        }
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 2,
+        }
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 1,
+        }
+      }
+    ]
+  }), []);
+
+  const similarShowsSliderSettings = useMemo(() => ({
+    dots: false,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 5,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    pauseOnHover: true,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 4,
         }
       },
       {
@@ -135,9 +109,8 @@ const TVShowDetails: React.FC = () => {
   }
 
   if (error || !tvShow) {
-    return <div>Error loading TV show details.</div>;
+    return <Loading />;
   }
-  console.log(tvShow);
 
   return (
     <>
@@ -213,6 +186,8 @@ const TVShowDetails: React.FC = () => {
             {/* Right column: Overview, Created By, and Last Episode */}
             <div className="lg:w-2/3">
               <div className="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6 mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white ">{tvShow.name}</h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">{tvShow.last_episode_to_air?.overview}</p>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Overview</h2>
                 <p className="text-gray-600 dark:text-gray-300">
                   {showFullOverview ? tvShow.overview : truncateOverview(tvShow.overview, 500)}
@@ -243,7 +218,7 @@ const TVShowDetails: React.FC = () => {
                   <p><strong>Name:</strong> {tvShow.last_episode_to_air.name}</p>
                   <p><strong>Air Date:</strong> {tvShow.last_episode_to_air.air_date}</p>
                   <p><strong>Episode:</strong> S{tvShow.last_episode_to_air.season_number}E{tvShow.last_episode_to_air.episode_number}</p>
-                  <p><strong>Overview:</strong> {tvShow.last_episode_to_air.overview}</p>
+                  
                   
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                     <p><strong>Number of Seasons:</strong> {tvShow.number_of_seasons || 'N/A'}</p>
@@ -265,7 +240,7 @@ const TVShowDetails: React.FC = () => {
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Cast</h2>
           <div className='overflow-hidden'>
             {credits?.cast && credits.cast.length > 1 ? (
-              <Slider {...sliderSettings}>
+              <Slider {...castSliderSettings}>
                 {credits.cast.map((actor) => (
                   <ActorCard key={actor.id} actor={actor} />
                 ))}
@@ -291,10 +266,16 @@ const TVShowDetails: React.FC = () => {
       <section className="py-12 bg-gray-100 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Similar TV Shows</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {similarShows.slice(0, 10).map((similarShow) => (
-              <SimilarTVShowCard key={similarShow.id} show={similarShow} />
-            ))}
+          <div className='overflow-hidden'>
+            {similarShows.length > 0 ? (
+              <Slider {...similarShowsSliderSettings}>
+                {similarShows.map((similarShow) => (
+                  <SimilarTVShowCard key={similarShow.id} show={{...similarShow, first_air_date: similarShow.first_air_date || ''}} />
+                ))}
+              </Slider>
+            ) : (
+              <p className="text-xl text-gray-700 dark:text-gray-300">No similar shows available.</p>
+            )}
           </div>
         </div>
       </section>
@@ -310,7 +291,14 @@ const TVShowDetails: React.FC = () => {
   );
 };
 
-const ActorCard: React.FC<{ actor: Credit }> = ({ actor }) => (
+interface Cast {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  character: string;
+}
+
+const ActorCard: React.FC<{ actor: Cast }> = ({ actor }) => (
   <Link href={`/personalDetails/${actor.id}`}>
     <div className="px-2">
       <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105">
@@ -336,24 +324,32 @@ const ActorCard: React.FC<{ actor: Credit }> = ({ actor }) => (
 
 const SimilarTVShowCard: React.FC<{ show: SimilarTVShow }> = ({ show }) => (
   <Link href={`/tv/${show.id}`}>
-    <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 transform">
-      {show.poster_path ? (
-        <img 
-          src={`https://image.tmdb.org/t/p/w200${show.poster_path}`}
-          alt={show.name}
-          className="w-full h-48 object-cover"
-        />
-      ) : (
-        <div className="bg-gray-400 w-full h-48 flex items-center justify-center">
-          <h1 className="text-xl font-bold text-gray-700">No Image</h1>
+    <div className="px-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 transform">
+        {(show as any).poster_path ? (
+          <img 
+            src={`https://image.tmdb.org/t/p/w200${(show as any).poster_path}`}
+            alt={show.name}
+            className="w-full h-64 object-cover"
+          />
+        ) : (
+          <div className="bg-gray-400 w-full h-64 flex items-center justify-center">
+            <h1 className="text-xl font-bold text-gray-700">No Image</h1>
+          </div>
+        )}
+        <div className="p-4">
+          <h3 className="text-md font-semibold text-gray-900 dark:text-white truncate">{show.name}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{show.first_air_date?.split('-')[0]}</p>
         </div>
-      )}
-      <div className="p-4">
-        <h3 className="text-md font-semibold text-gray-900 dark:text-white truncate">{show.name}</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300">{show.first_air_date?.split('-')[0]}</p>
       </div>
     </div>
   </Link>
 );
 
 export default TVShowDetails;
+
+export interface SimilarTVShow {
+  first_air_date: any;
+  id: number;
+  name: string;
+}

@@ -2,13 +2,12 @@
 
 import React, { useEffect, useState, useTransition } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTopRated } from '@/redux/tv';
-import { RootState, AppDispatch } from '@/redux/store';
+import { AppDispatch, RootState } from '@/redux/store';
+import { fetchTopRated, TvShow } from '@/redux/tv';
+import { TVShow } from '@/app/interfaces';
 import Image from 'next/image';
 import Link from 'next/link';
-import Loading from '@/app/loading'; // Import the Loading component
-import { TvShow } from '@/redux/tv'; // Import the TvShow type from your Redux slice
-
+import Loading from '@/app/loading';
 
 // Define genre mapping
 const genreMap: { [key: string]: number } = {
@@ -41,63 +40,50 @@ const languageOptions = [
   { code: 'zh-CN', name: 'Chinese (Simplified)' },
 ];
 
-const sortOptions = [
-  { value: 'popularity.desc', label: 'Popularity Descending' },
-  { value: 'popularity.asc', label: 'Popularity Ascending' },
-  { value: 'vote_average.desc', label: 'Rating Descending' },
-  { value: 'vote_average.asc', label: 'Rating Ascending' },
-  { value: 'first_air_date.desc', label: 'First Air Date Descending' },
-  { value: 'first_air_date.asc', label: 'First Air Date Ascending' },
-];
-
-
-
 const TopRatedTVShows: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { topRated, loading, error } = useSelector((state: RootState) => state.tv);
-  const [displayedShows, setDisplayedShows] = useState<TvShow[]>([]); // Use TvShow from Redux
+  const [displayedShows, setDisplayedShows] = useState<TvShow[]>([]);
+  const [isPending, startTransition] = useTransition();
   const [currentPage, setCurrentPage] = useState(1);
   const showsPerPage = 15;
-  const [isPending, startTransition] = useTransition();
 
   const [filters, setFilters] = useState({
     language: 'en-US',
-    sort_by: 'popularity.desc',
     'vote_average.gte': 0,
-    'first_air_date.gte': '2020-01-01',
-    'first_air_date.lte': '2024-12-31',
     with_genres: [] as number[],
   });
 
-  const [imgError, setImgError] = useState<{[key: number]: boolean}>({});
-
   useEffect(() => {
-    dispatch(fetchTopRated({
-      ...filters,
-      page: currentPage,
-      with_genres: filters.with_genres.join(','),
-    }));
+    const fetchData = () => {
+      dispatch(fetchTopRated());
+    };
+
+    fetchData();
+    const intervalId = setInterval(fetchData, 5000);
+
+    return () => clearInterval(intervalId);
   }, [dispatch, filters, currentPage]);
 
   useEffect(() => {
     if (topRated.length > 0) {
-      setDisplayedShows(topRated.slice(0, currentPage * showsPerPage));
+      startTransition(() => {
+        const filteredShows = topRated.filter(show => 
+          show.vote_average >= filters['vote_average.gte'] &&
+          (filters.with_genres.length === 0 || filters.with_genres.some(genreId => show.genre_ids.includes(genreId)))
+        );
+        setDisplayedShows(filteredShows.slice(0, currentPage * showsPerPage));
+      });
     }
-  }, [topRated, currentPage]);
+  }, [topRated, currentPage, filters]);
 
   const loadMore = () => {
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    const newDisplayedShows = topRated.slice(0, nextPage * showsPerPage);
-    startTransition(() => {
-      setDisplayedShows(newDisplayedShows);
-    });
+    setCurrentPage(prev => prev + 1);
   };
 
   const updateFilters = (newFilters: Partial<typeof filters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(1);
-    setDisplayedShows([]);
   };
 
   const handleGenreChange = (genre: string) => {
@@ -110,9 +96,12 @@ const TopRatedTVShows: React.FC = () => {
     });
   };
 
-  // Update the loading condition
   if (loading === 'pending' && displayedShows.length === 0) {
     return <Loading />;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
   }
 
   return (
@@ -139,32 +128,6 @@ const TopRatedTVShows: React.FC = () => {
                 {genre}
               </button>
             ))}
-          </div>
-        </div>
-        
-        {/* First Air Date filter */}
-        <div className="mb-3">
-          <h3 className="mb-1 text-sm font-medium">First Air Date Range</h3>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              min="1900"
-              max={new Date().getFullYear()}
-              value={new Date(filters['first_air_date.gte']).getFullYear()}
-              onChange={(e) => updateFilters({ 'first_air_date.gte': `${e.target.value}-01-01` })}
-              className="w-1/2 p-1 text-sm border rounded"
-              placeholder="From"
-            />
-            <span className="text-xs">to</span>
-            <input
-              type="number"
-              min="1900"
-              max={new Date().getFullYear()}
-              value={new Date(filters['first_air_date.lte']).getFullYear()}
-              onChange={(e) => updateFilters({ 'first_air_date.lte': `${e.target.value}-12-31` })}
-              className="w-1/2 p-1 text-sm border rounded"
-              placeholder="To"
-            />
           </div>
         </div>
         
@@ -200,43 +163,19 @@ const TopRatedTVShows: React.FC = () => {
             ))}
           </select>
         </div>
-        
-        {/* Sort filter */}
-        <div className="mb-3">
-          <h3 className="mb-1 text-sm font-medium">Sort By</h3>
-          <select
-            value={filters.sort_by}
-            onChange={(e) => updateFilters({ sort_by: e.target.value })}
-            className="w-full p-1 text-sm border rounded"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
       <div className="w-full md:w-3/4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
           {displayedShows.map((show: TvShow) => (
             <Link href={`/tv/${show.id}`} key={show.id}>
-              <div 
-                className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" 
-                style={{ opacity: isPending ? 0.7 : 1 }}
-              >
+              <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
                 <div className="relative">
                   <Image
                     className="w-full h-48 object-cover"
-                    src={
-                      imgError[show.id] || !show.poster_path
-                        ? '/path/to/fallback/image.jpg'
-                        : `https://image.tmdb.org/t/p/w500${show.poster_path}`
-                    }
+                    src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
                     alt={show.name}
                     width={500}
                     height={750}
-                    onError={() => setImgError(prev => ({...prev, [show.id]: true}))}
                   />
                   <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
                     <div className="text-white text-sm font-bold">{Math.round(show.vote_average * 10)}%</div>
@@ -260,17 +199,8 @@ const TopRatedTVShows: React.FC = () => {
             <button
               onClick={loadMore}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              disabled={loading === 'pending'}
-              aria-label="Load more TV shows"
             >
-              {loading === 'pending' ? (
-                <>
-                  <span className="spinner mr-2"></span>
-                  <Loading />
-                </>
-              ) : (
-                'Load More'
-              )}
+              Load More
             </button>
           </div>
         )}

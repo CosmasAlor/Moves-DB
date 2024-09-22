@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState, useTransition } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTopRated } from '@/redux/tv';
-import { RootState, AppDispatch } from '@/redux/store';
+import { fetchOnTheAir, TvShow } from '@/redux/tv';
+import { AppDispatch, RootState } from '@/redux/store';
 import Image from 'next/image';
 import Link from 'next/link';
-import Loading from '@/app/loading'; // Import the Loading component
+import Loading from '@/app/loading';
 
 // Define genre mapping
 const genreMap: { [key: string]: number } = {
@@ -28,66 +28,50 @@ const genreMap: { [key: string]: number } = {
   'Western': 37
 };
 
+// Define languageOptions
 const languageOptions = [
   { code: 'en-US', name: 'English' },
   { code: 'es-ES', name: 'Spanish' },
   { code: 'fr-FR', name: 'French' },
-  { code: 'de-DE', name: 'German' },
-  { code: 'it-IT', name: 'Italian' },
-  { code: 'ja-JP', name: 'Japanese' },
-  { code: 'ko-KR', name: 'Korean' },
-  { code: 'zh-CN', name: 'Chinese (Simplified)' },
+  // Add more languages as needed
 ];
 
-const sortOptions = [
-  { value: 'popularity.desc', label: 'Popularity Descending' },
-  { value: 'popularity.asc', label: 'Popularity Ascending' },
-  { value: 'vote_average.desc', label: 'Rating Descending' },
-  { value: 'vote_average.asc', label: 'Rating Ascending' },
-  { value: 'first_air_date.desc', label: 'First Air Date Descending' },
-  { value: 'first_air_date.asc', label: 'First Air Date Ascending' },
-];
-
-interface TvShowExtended {
-  id: number;
-  name: string;
-  overview: string;
-  poster_path: string;
-  first_air_date: string;
-  vote_average: number;
-  popularity: number;
-  genre_ids: number[];
-}
-
-const PopularTVShows: React.FC = () => {
+const OnTheAirTVShows: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { topRated, loading, error } = useSelector((state: RootState) => state.tv);
-  const [currentPage, setCurrentPage] = useState(1);
+  const { onTheAir, loading, error } = useSelector((state: RootState) => state.tv);
+  const [displayedShows, setDisplayedShows] = useState<TvShow[]>([]);
   const [isPending, startTransition] = useTransition();
-  const [displayedShows, setDisplayedShows] = useState<TvShowExtended[]>([]);
-
-  const showsPerPage = 20;
+  const [currentPage, setCurrentPage] = useState(1);
+  const showsPerPage = 15;
 
   const [filters, setFilters] = useState({
     language: 'en-US',
-    sort_by: 'popularity.desc',
     'vote_average.gte': 0,
-    'first_air_date.gte': '2020-01-01',
-    'first_air_date.lte': '2024-12-31',
     with_genres: [] as number[],
   });
 
   useEffect(() => {
-    dispatch(fetchTopRated({
-      language: filters.language,
-      sort_by: filters.sort_by,
-      'vote_average.gte': filters['vote_average.gte'],
-      'first_air_date.gte': filters['first_air_date.gte'],
-      'first_air_date.lte': filters['first_air_date.lte'],
-      with_genres: filters.with_genres.join(','), // Convert array to comma-separated string
-      page: currentPage,
-    }));
+    const fetchData = () => {
+      dispatch(fetchOnTheAir());
+    };
+
+    fetchData();
+    const intervalId = setInterval(fetchData, 5000);
+
+    return () => clearInterval(intervalId);
   }, [dispatch, filters, currentPage]);
+
+  useEffect(() => {
+    if (onTheAir.length > 0) {
+      startTransition(() => {
+        const filteredShows = onTheAir.filter(show =>
+          show.vote_average >= filters['vote_average.gte'] &&
+          (filters.with_genres.length === 0 || filters.with_genres.some(genreId => show.genre_ids.includes(genreId)))
+        );
+        setDisplayedShows(filteredShows.slice(0, currentPage * showsPerPage));
+      });
+    }
+  }, [onTheAir, currentPage, filters]);
 
   const loadMore = () => {
     setCurrentPage((prevPage) => prevPage + 1);
@@ -109,19 +93,18 @@ const PopularTVShows: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Update the loading condition
-  if (loading === 'pending' || (loading === 'idle' && displayedShows.length === 0)) {
+  if (loading === 'pending' && displayedShows.length === 0) {
     return <Loading />;
   }
 
-  if (loading === 'failed') {
+  if (error) {
     return <div>Error: {error}</div>;
   }
 
   return (
     <div className="flex flex-col md:flex-row">
       <div className="w-full md:w-1/4 p-4 bg-gray-100 dark:bg-gray-800">
-        <h1 className="mb-4 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Top Rated TV Shows</h1>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">TV Shows On The Air</h1>
         
         <h2 className="mb-2 text-lg font-semibold">Filters</h2>
         
@@ -142,32 +125,6 @@ const PopularTVShows: React.FC = () => {
                 {genre}
               </button>
             ))}
-          </div>
-        </div>
-        
-        {/* First Air Date filter */}
-        <div className="mb-3">
-          <h3 className="mb-1 text-sm font-medium">First Air Date Range</h3>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              min="1900"
-              max={new Date().getFullYear()}
-              value={new Date(filters['first_air_date.gte']).getFullYear()}
-              onChange={(e) => updateFilters({ 'first_air_date.gte': `${e.target.value}-01-01` })}
-              className="w-1/2 p-1 text-sm border rounded"
-              placeholder="From"
-            />
-            <span className="text-xs">to</span>
-            <input
-              type="number"
-              min="1900"
-              max={new Date().getFullYear()}
-              value={new Date(filters['first_air_date.lte']).getFullYear()}
-              onChange={(e) => updateFilters({ 'first_air_date.lte': `${e.target.value}-12-31` })}
-              className="w-1/2 p-1 text-sm border rounded"
-              placeholder="To"
-            />
           </div>
         </div>
         
@@ -204,32 +161,19 @@ const PopularTVShows: React.FC = () => {
             ))}
           </select>
         </div>
-        
-        {/* Sort filter */}
-        <div className="mb-3">
-          <h3 className="mb-1 text-sm font-medium">Sort By</h3>
-          <select
-            value={filters.sort_by}
-            onChange={(e) => updateFilters({ sort_by: e.target.value })}
-            className="w-full p-1 text-sm border rounded"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
       <div className="w-full md:w-3/4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-          {displayedShows.map((show) => (
+          {displayedShows.map((show: TvShow) => (
             <Link href={`/tv/${show.id}`} key={show.id}>
               <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
                 <div className="relative">
                   <Image
                     className="w-full h-48 object-cover"
-                    src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                    src={show.poster_path
+                      ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                      : '/path/to/placeholder-image.jpg'
+                    }
                     alt={show.name}
                     width={500}
                     height={750}
@@ -251,14 +195,13 @@ const PopularTVShows: React.FC = () => {
             </Link>
           ))}
         </div>
-        {topRated.length > displayedShows.length && (
+        {onTheAir.length > displayedShows.length && (
           <div className="flex justify-center mt-4 mb-8">
             <button
               onClick={loadMore}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              disabled={isPending}
             >
-              {isPending ? 'Loading...' : 'Load More'}
+              Load More
             </button>
           </div>
         )}
@@ -267,4 +210,4 @@ const PopularTVShows: React.FC = () => {
   );
 };
 
-export default PopularTVShows;
+export default OnTheAirTVShows;

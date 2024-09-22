@@ -1,9 +1,10 @@
 'use client';
 
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, BellIcon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useState, FormEvent } from 'react';
 
 const navigation = [
   {
@@ -46,6 +47,7 @@ const navigation = [
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname(); // Get the current pathname
+  const [searchQuery, setSearchQuery] = useState('');
 
   function handleNavigation(path: string) {
     router.push(path);
@@ -53,6 +55,13 @@ export default function Navbar() {
 
   function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ');
+  }
+
+  function handleSearch(e: FormEvent) {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
   }
 
   return (
@@ -120,6 +129,26 @@ export default function Navbar() {
             </div>
           </div>
           <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+            {/* Updated search bar with form */}
+            <form onSubmit={handleSearch} className="relative mr-4 flex items-center">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-gray-700 text-white rounded-l-full py-1 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                />
+                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              </div>
+              <button
+                type="submit"
+                className="bg-indigo-600 text-white rounded-r-full px-4 py-1 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+              >
+                Search
+              </button>
+            </form>
+            
             <button
               type="button"
               className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"

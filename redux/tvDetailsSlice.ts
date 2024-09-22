@@ -4,6 +4,7 @@ import axios from 'axios';
 
 // Define the TV show details interface
 interface TVShowDetails {
+  seasons: any;
   id: number;
   name: string;
   overview: string;
@@ -62,6 +63,7 @@ interface TVDetailsState {
 }
 
 interface SeasonDetails {
+  episodes: any;
   id: number;
   name: string;
   overview: string;

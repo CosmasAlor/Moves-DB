@@ -1,14 +1,13 @@
-'use client'
+'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAiringToday } from '@/redux/tv';
+import { fetchOnTheAir } from '@/redux/tv';
 import { RootState, AppDispatch } from '@/redux/store';
 import Image from 'next/image';
 import Link from 'next/link';
 import Loading from '@/app/loading';
 
-// Define genre mapping
 const genreMap: { [key: string]: number } = {
   'Action & Adventure': 10759,
   'Animation': 16,
@@ -32,11 +31,6 @@ const languageOptions = [
   { code: 'en-US', name: 'English' },
   { code: 'es-ES', name: 'Spanish' },
   { code: 'fr-FR', name: 'French' },
-  { code: 'de-DE', name: 'German' },
-  { code: 'it-IT', name: 'Italian' },
-  { code: 'ja-JP', name: 'Japanese' },
-  { code: 'ko-KR', name: 'Korean' },
-  { code: 'zh-CN', name: 'Chinese (Simplified)' },
 ];
 
 const sortOptions = [
@@ -44,8 +38,8 @@ const sortOptions = [
   { value: 'popularity.asc', label: 'Popularity Ascending' },
   { value: 'vote_average.desc', label: 'Rating Descending' },
   { value: 'vote_average.asc', label: 'Rating Ascending' },
-  { value: 'first_air_date.desc', label: 'First Air Date Descending' },
-  { value: 'first_air_date.asc', label: 'First Air Date Ascending' },
+  { value: 'first_air_date.desc', label: 'Release Date Descending' },
+  { value: 'first_air_date.asc', label: 'Release Date Ascending' },
 ];
 
 interface TvShowExtended {
@@ -59,10 +53,10 @@ interface TvShowExtended {
   genre_ids: number[];
 }
 
-const AiringTodayPage: React.FC = () => {
+const OnTheAirTVShows: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { airingToday, loading, error } = useSelector((state: RootState) => state.tv);
-  const [page, setPage] = useState(1);
+  const { onTheAir, loading, error } = useSelector((state: RootState) => state.tv);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isPending, startTransition] = useTransition();
   const [displayedShows, setDisplayedShows] = useState<TvShowExtended[]>([]);
 
@@ -76,45 +70,51 @@ const AiringTodayPage: React.FC = () => {
     'first_air_date.lte': '2024-12-31',
     with_genres: [] as number[],
   });
-
   useEffect(() => {
-    dispatch(fetchAiringToday());
+    dispatch(fetchOnTheAir());
   }, [dispatch]);
 
   useEffect(() => {
-    if (airingToday.length > 0) {
-      const filteredShows = (airingToday as TvShowExtended[]).filter(show => {
-        return (
-          show.vote_average >= filters['vote_average.gte'] &&
-          new Date(show.first_air_date) >= new Date(filters['first_air_date.gte']) &&
-          new Date(show.first_air_date) <= new Date(filters['first_air_date.lte']) &&
-          (filters.with_genres.length === 0 || filters.with_genres.some(genre => show.genre_ids.includes(genre)))
-        );
-      });
-
-      const sortedShows = filteredShows.sort((a, b) => {
-        if (filters.sort_by === 'popularity.desc') return b.popularity - a.popularity;
-        if (filters.sort_by === 'popularity.asc') return a.popularity - b.popularity;
-        if (filters.sort_by === 'vote_average.desc') return b.vote_average - a.vote_average;
-        if (filters.sort_by === 'vote_average.asc') return a.vote_average - b.vote_average;
-        if (filters.sort_by === 'first_air_date.desc') return new Date(b.first_air_date).getTime() - new Date(a.first_air_date).getTime();
-        if (filters.sort_by === 'first_air_date.asc') return new Date(a.first_air_date).getTime() - new Date(b.first_air_date).getTime();
-        return 0;
-      });
-
+    if (onTheAir.length > 0) {
       startTransition(() => {
-        setDisplayedShows(sortedShows.slice(0, page * showsPerPage));
+        const filteredShows = (onTheAir as TvShowExtended[]).filter(show => {
+          const airDate = new Date(show.first_air_date);
+          return (
+            show.vote_average >= filters['vote_average.gte'] &&
+            airDate >= new Date(filters['first_air_date.gte']) &&
+            airDate <= new Date(filters['first_air_date.lte']) &&
+            (filters.with_genres.length === 0 || filters.with_genres.some(genre => show.genre_ids.includes(genre)))
+          );
+        });
+
+        const sortedShows = filteredShows.sort((a, b) => {
+          switch (filters.sort_by) {
+            case 'popularity.desc': return b.popularity - a.popularity;
+            case 'popularity.asc': return a.popularity - b.popularity;
+            case 'vote_average.desc': return b.vote_average - a.vote_average;
+            case 'vote_average.asc': return a.vote_average - b.vote_average;
+            case 'first_air_date.desc': return new Date(b.first_air_date).getTime() - new Date(a.first_air_date).getTime();
+            case 'first_air_date.asc': return new Date(a.first_air_date).getTime() - new Date(b.first_air_date).getTime();
+            default: return 0;
+          }
+        });
+
+        // Use a Set to ensure uniqueness
+        const uniqueShows = Array.from(new Set(sortedShows.map(show => show.id)))
+          .map(id => sortedShows.find(show => show.id === id)!);
+
+        setDisplayedShows(uniqueShows.slice(0, currentPage * showsPerPage));
       });
     }
-  }, [airingToday, filters, page]);
+  }, [onTheAir, filters, currentPage, showsPerPage]);
 
   const loadMore = () => {
-    setPage((prevPage) => prevPage + 1);
+    setCurrentPage((prevPage) => prevPage + 1);
   };
 
   const updateFilters = (newFilters: Partial<typeof filters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
-    setPage(1);
+    setCurrentPage(1);
   };
 
   const handleGenreChange = (genre: string) => {
@@ -125,21 +125,26 @@ const AiringTodayPage: React.FC = () => {
         : [...prev.with_genres, genreId];
       return { ...prev, with_genres: newGenres };
     });
-    setPage(1);
+    setCurrentPage(1);
   };
 
-  if (loading === 'pending' && displayedShows.length === 0) {
+  // Update the loading and error handling
+  if (loading === 'pending' || (loading === 'idle' && displayedShows.length === 0)) {
     return <Loading />;
   }
 
   if (loading === 'failed') {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="flex justify-center items-center h-full">
+        <p className="text-red-500">Error loading TV shows. Please try again later.</p>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col md:flex-row">
       <div className="w-full md:w-1/4 p-4 bg-gray-100 dark:bg-gray-800">
-        <h1 className="mb-4 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">TV Shows Airing Today</h1>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">TV Shows On The Air</h1>
         
         <h2 className="mb-2 text-lg font-semibold">Filters</h2>
         
@@ -240,44 +245,54 @@ const AiringTodayPage: React.FC = () => {
         </div>
       </div>
       <div className="w-full md:w-3/4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-          {displayedShows.map((show) => (
-            <Link href={`/tv/${show.id}`} key={show.id}>
-              <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
-                <div className="relative">
-                  <Image
-                    className="w-full h-48 object-cover"
-                    src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
-                    alt={show.name}
-                    width={500}
-                    height={750}
-                  />
-                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
-                    <div className="text-white text-sm font-bold">{Math.round(show.vote_average * 10)}%</div>
+        {displayedShows.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+              {displayedShows.map((show) => (
+                <Link href={`/tv/${show.id}`} key={show.id}>
+                  <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
+                    <div className="relative">
+                      <Image
+                        className="w-full h-48 object-cover"
+                        src={show.poster_path 
+                          ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                          : '/images/placeholder-poster.jpg'}
+                        alt={show.name}
+                        width={500}
+                        height={750}
+                      />
+                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
+                        <div className="text-white text-sm font-bold">{Math.round(show.vote_average * 10)}%</div>
+                      </div>
+                    </div>
+                    <div className="p-4 flex flex-col flex-grow">
+                      <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-1">
+                        {show.name}
+                      </h5>
+                      <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-2">{show.overview}</p>
+                      <div className="mt-auto">
+                        <span className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{show.first_air_date}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="p-4 flex flex-col flex-grow">
-                  <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-1">
-                    {show.name}
-                  </h5>
-                  <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-2">{show.overview}</p>
-                  <div className="mt-auto">
-                    <span className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{show.first_air_date}</span>
-                  </div>
-                </div>
+                </Link>
+              ))}
+            </div>
+            {displayedShows.length < onTheAir.length && (
+              <div className="flex justify-center mt-4 mb-8">
+                <button
+                  onClick={loadMore}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  disabled={isPending}
+                >
+                  {isPending ? 'Loading...' : 'Load More'}
+                </button>
               </div>
-            </Link>
-          ))}
-        </div>
-        {airingToday.length > displayedShows.length && (
-          <div className="flex justify-center mt-4 mb-8">
-            <button
-              onClick={loadMore}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              disabled={isPending}
-            >
-              {isPending ? 'Loading...' : 'Load More'}
-            </button>
+            )}
+          </>
+        ) : (
+          <div className="flex justify-center items-center h-full">
+            <p className="text-gray-600 dark:text-gray-400">No shows found. Try adjusting your filters.</p>
           </div>
         )}
       </div>
@@ -285,4 +300,4 @@ const AiringTodayPage: React.FC = () => {
   );
 };
 
-export default AiringTodayPage;
+export default OnTheAirTVShows;

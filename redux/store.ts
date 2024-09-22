@@ -7,6 +7,7 @@ import personSlice from "./Person";
 import personalDetailsSlice from "./personalDetails";
 import tvDetailsReducer from "./tvDetailsSlice"; // Update this import
 import tvReducer from './tv';
+import searchReducer from './searchSlice';
 
 export const store = configureStore({
   reducer: {
@@ -17,7 +18,8 @@ export const store = configureStore({
     personalDetailsSlice,
     moviesDiscover: moviesDiscoverReducer,
     tv: tvReducer,
-    tvDetails: tvDetailsReducer // Add this line
+    tvDetails: tvDetailsReducer, // Add this line
+    search: searchReducer,
   }
 });
 

@@ -31,6 +31,17 @@ export interface MovieState {
   error: string | null;
 }
 
+
+export interface TVShow {
+  id: number;
+  name: string;
+  poster_path: string | null;
+  vote_average: number;
+  overview: string;
+  first_air_date: string;
+  genre_ids: number[];
+}
+
 export interface UpcomingState {
   upcoming: MovieState;
   topRated: MovieState;
