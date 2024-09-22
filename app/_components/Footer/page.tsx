@@ -39,7 +39,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Company Name. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Developed with ❤️ by <Link href="https://github.com/CosmasAlor" className="hover:text-gray-300">Cosmas Alor</Link></p>
         </div>
       </div>
     </footer>

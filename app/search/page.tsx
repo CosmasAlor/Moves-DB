@@ -203,13 +203,19 @@ const Search: React.FC = () => {
             <Link href={item.media_type === 'person' ? `/personalDetails/${item.id}` : `/${item.media_type}/${item.id}`} key={item.id}>
               <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
                 <div className="relative">
-                  <Image
-                    className="w-full h-48 object-cover"
-                    src={`https://image.tmdb.org/t/p/w500${item.poster_path || item.profile_path}`}
-                    alt={item.title || item.name}
-                    width={500}
-                    height={750}
-                  />
+                  {item.poster_path || item.profile_path ? (
+                    <Image
+                      className="w-full h-48 object-cover"
+                      src={`https://image.tmdb.org/t/p/w500${item.poster_path || item.profile_path}`}
+                      alt={item.title || item.name}
+                      width={500}
+                      height={750}
+                    />
+                  ) : (
+                    <div className="w-full h-48 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                      <span className="text-gray-500 dark:text-gray-400">No image</span>
+                    </div>
+                  )}
                   {item.vote_average && item.media_type !== 'person' && (
                     <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
                       <div className="text-white text-sm font-bold">{Math.round(item.vote_average * 10)}%</div>
