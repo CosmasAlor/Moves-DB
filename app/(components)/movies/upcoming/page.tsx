@@ -7,6 +7,7 @@ import { GetUpcoming } from '@/redux/UpcomingSlice';
 import { Movie } from '@/app/interfaces';
 import Image from 'next/image';
 import Link from 'next/link';
+import Loading from '@/app/loading'; // Import the Loading component
 
 // Define genre mapping
 const genreMap: { [key: string]: number } = {
@@ -98,8 +99,9 @@ const Upcoming: React.FC = () => {
     });
   };
 
+  // Update the loading condition
   if (isLoading && displayedMovies.length === 0) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   if (error) {

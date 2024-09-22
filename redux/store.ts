@@ -5,7 +5,7 @@ import movieDetailsSlice from "./movieDetails";
 import moviesDiscoverReducer from './moviesDiscoverSlice';
 import personSlice from "./Person";
 import personalDetailsSlice from "./personalDetails";
-
+import tvDetailsReducer from "./tvDetailsSlice"; // Update this import
 import tvReducer from './tv';
 
 export const store = configureStore({
@@ -16,7 +16,8 @@ export const store = configureStore({
     personSlice,
     personalDetailsSlice,
     moviesDiscover: moviesDiscoverReducer,
-    tv: tvReducer, // Add this line
+    tv: tvReducer,
+    tvDetails: tvDetailsReducer // Add this line
   }
 });
 

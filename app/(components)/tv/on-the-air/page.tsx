@@ -105,7 +105,8 @@ const OnTheAirTVShows: React.FC = () => {
     setCurrentPage(1);
   };
 
-  if (loading === 'pending' && displayedShows.length === 0) {
+  // Update the loading condition
+  if (loading === 'pending' || (loading === 'idle' && displayedShows.length === 0)) {
     return <Loading />;
   }
 
@@ -253,8 +254,9 @@ const OnTheAirTVShows: React.FC = () => {
               <button
                 onClick={loadMore}
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                disabled={loading === 'pending'}
               >
-                Load More
+                {loading === 'pending' ? <Loading /> : 'Load More'}
               </button>
             </div>
           </>

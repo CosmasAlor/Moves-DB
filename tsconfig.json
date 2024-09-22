@@ -19,9 +19,19 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/components/*": ["./app/(components)/*"],
+      "@/redux/*": ["./redux/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "app/(components)/tv/[id]/page.tsx",
+    "app/(components)/tv/[id]/seasons/page.tsx",
+    "app/(components)/tv/[id]/season/[seasonNumber]/page.tsx"
+  ],
   "exclude": ["node_modules"]
 }

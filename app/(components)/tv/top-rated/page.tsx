@@ -66,22 +66,18 @@ const TopRatedTVShows: React.FC = () => {
   });
 
   useEffect(() => {
-    if (loading === 'idle') {
-      dispatch(fetchTopRated({
-        ...filters,
-        page: currentPage,
-        with_genres: filters.with_genres.join(','),
-      }));
-    }
-  }, [dispatch, loading, filters, currentPage]);
+    dispatch(fetchTopRated({
+      ...filters,
+      page: currentPage,
+      with_genres: filters.with_genres.join(','),
+    }));
+  }, [dispatch, filters, currentPage]);
 
   useEffect(() => {
     if (topRated.length > 0) {
-      startTransition(() => {
-        setDisplayedShows(topRated.slice(0, showsPerPage));
-      });
+      setDisplayedShows(topRated.slice(0, currentPage * showsPerPage));
     }
-  }, [topRated]);
+  }, [topRated, currentPage]);
 
   const loadMore = () => {
     const nextPage = currentPage + 1;
@@ -109,7 +105,7 @@ const TopRatedTVShows: React.FC = () => {
   };
 
   // Update the loading condition
-  if (loading === 'pending' || (loading === 'idle' && displayedShows.length === 0)) {
+  if (loading === 'pending' && displayedShows.length === 0) {
     return <Loading />;
   }
 
@@ -220,45 +216,51 @@ const TopRatedTVShows: React.FC = () => {
         </div>
       </div>
       <div className="w-full md:w-3/4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-          {displayedShows.map((show) => (
-            <Link href={`/tv/${show.id}`} key={show.id}>
-              <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
-                <div className="relative">
-                  <Image
-                    className="w-full h-48 object-cover"
-                    src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
-                    alt={show.name}
-                    width={500}
-                    height={750}
-                  />
-                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
-                    <div className="text-white text-sm font-bold">{Math.round(show.vote_average * 10)}%</div>
+        {loading === 'failed' ? (
+          <div className="p-4 text-red-500">Error: {error}</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+              {displayedShows.map((show) => (
+                <Link href={`/tv/${show.id}`} key={show.id}>
+                  <div className="h-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-lg overflow-hidden flex flex-col" style={{ opacity: isPending ? 0.7 : 1 }}>
+                    <div className="relative">
+                      <Image
+                        className="w-full h-48 object-cover"
+                        src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                        alt={show.name}
+                        width={500}
+                        height={750}
+                      />
+                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 rounded-full p-1">
+                        <div className="text-white text-sm font-bold">{Math.round(show.vote_average * 10)}%</div>
+                      </div>
+                    </div>
+                    <div className="p-4 flex flex-col flex-grow">
+                      <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-1">
+                        {show.name}
+                      </h5>
+                      <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-2">{show.overview}</p>
+                      <div className="mt-auto">
+                        <span className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{show.first_air_date}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="p-4 flex flex-col flex-grow">
-                  <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-1">
-                    {show.name}
-                  </h5>
-                  <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-2">{show.overview}</p>
-                  <div className="mt-auto">
-                    <span className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300'>{show.first_air_date}</span>
-                  </div>
-                </div>
+                </Link>
+              ))}
+            </div>
+            {topRated.length > displayedShows.length && (
+              <div className="flex justify-center mt-4 mb-8">
+                <button
+                  onClick={loadMore}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  disabled={loading === 'pending'}
+                >
+                  {loading === 'pending' ? 'Loading...' : 'Load More'}
+                </button>
               </div>
-            </Link>
-          ))}
-        </div>
-        {topRated.length > displayedShows.length && (
-          <div className="flex justify-center mt-4 mb-8">
-            <button
-              onClick={loadMore}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              disabled={loading === 'pending'}
-            >
-              {loading === 'pending' ? <Loading /> : 'Load More'}
-            </button>
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>
