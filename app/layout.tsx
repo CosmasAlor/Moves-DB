@@ -23,15 +23,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Provider store={store}>
-          
-{/*           {children}
-          <Footer /> */}
-
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow">{children}</main>
-      <Footer />
-    </div>
+          <Navbar />
+          {children}
+          <Footer />
         </Provider>
         <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
       </body>
