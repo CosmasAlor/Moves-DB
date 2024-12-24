@@ -56,7 +56,7 @@ const Carousel: React.FC = () => {
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">{movie.title}</h2>
               <p className="mt-2 text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl">{movie.overview.slice(0, 100)}...</p>
               <Link href={`/movie/${movie.id}`} className="mt-2 inline-block px-3 py-1 sm:px-4 sm:py-2 bg-blue-600 text-white text-sm sm:text-base rounded hover:bg-blue-700 transition-colors duration-300">
-                Read more
+                Read more cosmas
               </Link>
             </div>
           </div>

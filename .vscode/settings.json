@@ -11,5 +11,6 @@
         "tmdb",
         "Toprated",
         "Yjky"
-    ]
+    ],
+    "liveServer.settings.port": 5501
 }
