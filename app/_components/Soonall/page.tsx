@@ -14,8 +14,8 @@ const Soonall: React.FC = () => {
   return (
     <>
  
-            
-      <div className="mb-4 border-b border-gray-200 dark:border-gray-700">
+ <div className='container mx-auto px-2'>
+ <div className="mb-4 border-b border-gray-200 dark:border-gray-700">
         <ul className="flex -mb-px text-[10px] sm:text-xs font-medium text-center" role="tablist">
           {['upcoming', 'trending', 'nowPlaying', 'topRated'].map((tab) => (
             <li key={tab} className="flex-1" role="presentation">
@@ -53,6 +53,9 @@ const Soonall: React.FC = () => {
           </div>
         </div>
       </div>
+  
+  </div>        
+
     </>
   );
 };
