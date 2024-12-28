@@ -5,8 +5,18 @@ import { Bars3Icon, BellIcon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useState, FormEvent } from 'react';
+import logo from '../../assets/logo.webp'
+import Image from 'next/image';
 
-const navigation = [
+// Define types for navigation items
+type NavigationItem = {
+  name: string;
+  path: string;
+  subItems?: NavigationItem[];
+};
+
+// Move navigation array outside the component
+const navigation: NavigationItem[] = [
   {
     name: 'Movies',
     path: '/movies',
@@ -60,7 +70,11 @@ export default function Navbar() {
   function handleSearch(e: FormEvent) {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      try {
+        router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      } catch (error) {
+        console.error("Search navigation error:", error);
+      }
     }
   }
 
@@ -78,17 +92,15 @@ export default function Navbar() {
           </div>
           <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
             <div className="flex flex-shrink-0 items-center">
-
-            <Link href={'/'}>
-              <img
-                  alt="Your Company"
-                  src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+              <Link href={'/'}>
+                <Image
                   className="h-8 w-auto"
+                  src={logo}
+                  alt="Logo"
+                  width={400}
+                  height={100}
                 />
-            </Link>
-
-
-
+              </Link>
             </div>
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
